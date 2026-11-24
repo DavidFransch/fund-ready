@@ -10,8 +10,7 @@ import { knownSuppliers, stockRows, suppliers } from "@/books/selectors";
 import { useConfirmedAction } from "@/components/app/confirm";
 import { centsToText, Chips, ChoiceTiles, MoneyInput, parseRand, Segmented, Stepper, TextInput } from "@/components/app/inputs";
 import { ChosenItem, ItemPicker } from "@/components/app/item-picker";
-import { Divider, InfoStrip, Loading, Panel, Screen, STROKE } from "@/components/app/screen";
-import { Button } from "@/components/ui/button";
+import { Divider, FormActions, InfoStrip, Loading, Panel, Screen, STROKE } from "@/components/app/screen";
 import { money } from "@/lib/format";
 
 type Mode = "stock" | "other";
@@ -80,14 +79,8 @@ export function PayForm({ initialMode }: { initialMode: Mode }) {
     <Screen
       title={isStock ? "Buy stock" : "Expense"}
       back="/"
-      footer={
-        <>
-          {stillMissing && <p className="text-center text-[13px] text-ink-muted">{stillMissing}</p>}
-          <Button size="primary" disabled={!!stillMissing} onClick={submit}>
-            {isStock ? "Review purchase" : "Review expense"}
-          </Button>
-        </>
-      }
+      width="form"
+      footer={<FormActions hint={stillMissing} cancelHref="/" label={isStock ? "Review purchase" : "Review expense"} disabled={!!stillMissing} onClick={submit} />}
     >
       <Segmented
         label="What did you pay for"

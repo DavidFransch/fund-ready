@@ -8,8 +8,7 @@ import { stockRows } from "@/books/selectors";
 import { useBooks } from "@/books/store";
 import { useConfirmedAction } from "@/components/app/confirm";
 import { RadioPills, Stepper } from "@/components/app/inputs";
-import { Divider, Loading, NightCard, Panel, Screen } from "@/components/app/screen";
-import { Button } from "@/components/ui/button";
+import { Divider, FormActions, Loading, NightCard, Panel, Screen } from "@/components/app/screen";
 import { money } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -46,6 +45,7 @@ export default function CountPage() {
     <Screen
       title="Count stock"
       back="/stock"
+      width="form"
       footer={
         <>
           <NightCard aria-label="Count result" className="flex items-center justify-between gap-3 rounded-[20px] px-[18px] py-4">
@@ -55,9 +55,7 @@ export default function CountPage() {
             </span>
             <span className="max-w-[120px] text-right text-[13px] leading-snug text-night-muted">{note}</span>
           </NightCard>
-          <Button size="primary" disabled={!cmd} onClick={() => cmd && check({ ...cmd, id: newId() } as Command)}>
-            Save count
-          </Button>
+          <FormActions cancelHref="/stock" label="Save count" disabled={!cmd} onClick={() => cmd && check({ ...cmd, id: newId() } as Command)} />
         </>
       }
     >

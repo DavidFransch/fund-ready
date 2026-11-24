@@ -10,8 +10,7 @@ import { useBooks } from "@/books/store";
 import { useConfirmedAction } from "@/components/app/confirm";
 import { centsToText, Chips, MoneyInput, parseRand, Stepper, TextInput } from "@/components/app/inputs";
 import { ItemIcon, ItemPicker } from "@/components/app/item-picker";
-import { Amount, Divider, InfoStrip, Loading, Panel, Pill, Screen } from "@/components/app/screen";
-import { Button } from "@/components/ui/button";
+import { Amount, Divider, FormActions, InfoStrip, Loading, Panel, Pill, Screen } from "@/components/app/screen";
 import { money } from "@/lib/format";
 
 const METHODS: { value: PaymentMethod; label: string }[] = [
@@ -84,13 +83,15 @@ export function SellForm({ invoice = false }: { invoice?: boolean }) {
     <Screen
       title={invoice ? `Invoice ${invoiceNumber}` : "New sale"}
       back="/"
+      width="form"
       footer={
-        <>
-          {missing && <p className="text-center text-[13px] text-ink-muted">{missing}</p>}
-          <Button size="primary" disabled={!!missing} onClick={() => cmd && !missing && check({ ...cmd, id: newId() } as Command)}>
-            {invoice ? "Review invoice" : "Review sale"}
-          </Button>
-        </>
+        <FormActions
+          hint={missing}
+          cancelHref="/"
+          label={invoice ? "Review invoice" : "Review sale"}
+          disabled={!!missing}
+          onClick={() => cmd && !missing && check({ ...cmd, id: newId() } as Command)}
+        />
       }
     >
       {item && !picking ? (

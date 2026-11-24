@@ -6,10 +6,9 @@ import { useState } from "react";
 import { newId } from "@/books/ids";
 import { suppliers } from "@/books/selectors";
 import type { BooksSnapshot } from "@/books/store";
-import { Button } from "@/components/ui/button";
 import { money } from "@/lib/format";
 import { centsToText, ChoiceTiles, MoneyInput, parseRand } from "./inputs";
-import { Panel } from "./screen";
+import { FormActions, Panel } from "./screen";
 
 /** Pay a supplier what you owe them, from petty cash or the bank. Returns the form body and its footer button. */
 export function useSupplierPayForm(snapshot: BooksSnapshot, onCheck: (cmd: Command) => void) {
@@ -49,16 +48,13 @@ export function useSupplierPayForm(snapshot: BooksSnapshot, onCheck: (cmd: Comma
     </>
   );
   const footer = (
-    <>
-      {missing && owed.length > 0 && <p className="text-center text-[13px] text-ink-muted">{missing}</p>}
-      <Button
-        size="primary"
-        disabled={!!missing}
-        onClick={() => supplier && amount && from && onCheck({ kind: "payment_made", id: newId(), date: snapshot.today, amount, from, supplier })}
-      >
-        Review payment
-      </Button>
-    </>
+    <FormActions
+      hint={owed.length > 0 ? missing : null}
+      cancelHref="/"
+      label="Review payment"
+      disabled={!!missing}
+      onClick={() => supplier && amount && from && onCheck({ kind: "payment_made", id: newId(), date: snapshot.today, amount, from, supplier })}
+    />
   );
   return { body, footer };
 }

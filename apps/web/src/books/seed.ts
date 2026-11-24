@@ -37,13 +37,13 @@ interface SampleItem extends Item {
 }
 
 export const SAMPLE_ITEMS: SampleItem[] = [
-  { id: "bread", name: "Brown bread", kind: "stock", unit: "loaves", salePrice: rand(18), reorderLevel: 20, cost: rand(14), supplier: SUPPLIERS.van },
-  { id: "milk", name: "Milk 1L", kind: "stock", unit: "cartons", salePrice: rand(22), reorderLevel: 15, cost: rand(17), supplier: SUPPLIERS.van },
-  { id: "cooldrink", name: "Cooldrink 2L", kind: "stock", unit: "bottles", salePrice: rand(30), reorderLevel: 12, cost: rand(22), supplier: SUPPLIERS.wholesaler },
-  { id: "maize", name: "Maize meal 5kg", kind: "stock", unit: "bags", salePrice: rand(70), reorderLevel: 8, cost: rand(55), supplier: SUPPLIERS.wholesaler },
-  { id: "sugar", name: "Sugar 2.5kg", kind: "stock", unit: "bags", salePrice: rand(58), reorderLevel: 8, cost: rand(45), supplier: SUPPLIERS.wholesaler },
+  { id: "bread", name: "Brown bread", kind: "stock", unit: "loaves", salePrice: rand(20), reorderLevel: 20, cost: rand(14), supplier: SUPPLIERS.van },
+  { id: "milk", name: "Milk 1L", kind: "stock", unit: "cartons", salePrice: rand(24), reorderLevel: 15, cost: rand(17), supplier: SUPPLIERS.van },
+  { id: "cooldrink", name: "Cooldrink 2L", kind: "stock", unit: "bottles", salePrice: rand(32), reorderLevel: 12, cost: rand(22), supplier: SUPPLIERS.wholesaler },
+  { id: "maize", name: "Maize meal 5kg", kind: "stock", unit: "bags", salePrice: rand(75), reorderLevel: 8, cost: rand(55), supplier: SUPPLIERS.wholesaler },
+  { id: "sugar", name: "Sugar 2.5kg", kind: "stock", unit: "bags", salePrice: rand(62), reorderLevel: 8, cost: rand(45), supplier: SUPPLIERS.wholesaler },
   { id: "oil", name: "Sunflower oil 2L", kind: "stock", unit: "bottles", salePrice: rand(65), reorderLevel: 6, cost: rand(48), supplier: SUPPLIERS.wholesaler },
-  { id: "soap", name: "Washing powder 1kg", kind: "stock", unit: "boxes", salePrice: rand(45), reorderLevel: 6, cost: rand(32), supplier: SUPPLIERS.wholesaler },
+  { id: "soap", name: "Washing powder 1kg", kind: "stock", unit: "boxes", salePrice: rand(48), reorderLevel: 6, cost: rand(32), supplier: SUPPLIERS.wholesaler },
 ];
 
 export const ITEMS: Item[] = SAMPLE_ITEMS.map((i) => ({
@@ -162,11 +162,10 @@ export function generateSampleBusiness(today: string): SampleBusiness {
       add({ kind: "expense", date: d, amount: rand(69), category: "bank_fees", paidFrom: "bank" });
     }
     if (d.endsWith("-15")) pay(d, rand(450), "electricity", "Prepaid electricity");
-    if (d.endsWith("-25")) add({ kind: "owner_drawing", date: d, amount: rand(3000), from: "bank" });
     if (d.endsWith("-05") || d.endsWith("-20")) pay(d, rand(99), "data", "Airtime");
 
     // Morning and afternoon trade; quieter on Sundays.
-    for (const share of dow === 0 ? [0.5, 0.5] : [0.6, 0.5, 0.6]) {
+    for (const share of dow === 0 ? [0.6, 0.5] : [0.7, 0.6, 0.7]) {
       const lines = SAMPLE_ITEMS.filter((i) => qty(i.id) > 0 && r.chance(share) && !(d === end && i.id === HERO_ITEM)).map((i) =>
         saleLine(i.id, Math.min(qty(i.id), r.int(1, Math.max(1, Math.round((i.reorderLevel ?? 5) / 4))))),
       );
@@ -185,6 +184,8 @@ export function generateSampleBusiness(today: string): SampleBusiness {
       if (owed > 0) add({ kind: "payment_made", date: d, amount: owed, from: "bank", supplier: SUPPLIERS.wholesaler });
     }
     if (dow === 6) pay(d, rand(400), "wages", "Sipho (Saturday helper)");
+    // Thandeka pays herself from the till every Saturday.
+    if (dow === 6 && cash() > rand(800)) add({ kind: "owner_drawing", date: d, amount: rand(500), from: "cash" });
     if (dow === 3 && r.chance(0.7)) pay(d, rand(85), "packaging", SUPPLIERS.plastics);
     if (dow === 4 && r.chance(0.5)) pay(d, rand(r.chance(0.5) ? 60 : 120), "transport", "Taxi");
     if (d.endsWith("-28")) {

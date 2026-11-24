@@ -13,6 +13,32 @@ infra/            GCP setup script and Cloud Build pipeline
 docs/             plan and reference docs
 ```
 
+## Fetola demo (browser only)
+
+The demo at `/` runs entirely in the browser: no login, database or GCP. It runs the
+`Book` from `@app/ledger` on the client, replays a deterministic sample business
+(Mama Tee Spaza, Gugulethu, from the 1st of last month up to yesterday) and keeps
+only the user's own commands in localStorage. Click-by-click script:
+[docs/demo-script.md](docs/demo-script.md).
+
+```bash
+pnpm install
+pnpm dev               # http://localhost:3000, no database needed
+```
+
+Code: `apps/web/src/books/` (store, sample business, selectors, plain-language
+wording) and `apps/web/src/app/` (screens). Screens only use `useBooks()`, so the
+store can later be replaced by server actions on `packages/db`.
+
+What the demo simplifies:
+- Every action is dated today; there is no back-dating and no undo or reversal screen.
+- No month is closed, so period locking is not shown.
+- Suppliers are matched by name for "money owed"; there are no supplier records.
+- A sale is one item per action (the ledger supports more).
+- Data lives in one browser. Use Reset demo to start over, or when moving device.
+- The home card shows the last 7 days instead of the calendar week, so it is never
+  empty on a Monday.
+
 ## Local development
 
 Requirements: Node 22, pnpm 10, Postgres 16.

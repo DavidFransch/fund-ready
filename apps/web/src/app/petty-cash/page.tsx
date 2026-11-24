@@ -1,12 +1,12 @@
 "use client";
 
-import { ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ArrowDownToLine, Landmark } from "lucide-react";
+import { Fragment, useMemo, useState } from "react";
 import { newId } from "@/books/ids";
-import { pettyCash } from "@/books/selectors";
+import { byDay, pettyCash } from "@/books/selectors";
 import { useConfirmedAction } from "@/components/app/confirm";
 import { MoneyInput, parseRand } from "@/components/app/inputs";
-import { Card, Loading, NightCard, Screen, SectionTitle } from "@/components/app/screen";
+import { Amount, DayHeading, Divider, Loading, Panel, Screen, STROKE } from "@/components/app/screen";
 import { Button } from "@/components/ui/button";
 import { money, relativeDay } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -34,67 +34,69 @@ export default function PettyCashPage() {
   }
 
   return (
-    <Screen title="Petty cash" back="/" nav>
-      <NightCard className="flex flex-col gap-3">
-        <span className="text-[15px] text-night-muted">In the cash box now</span>
-        <span className="text-4xl font-bold">{money(balance)}</span>
-        <div className="grid grid-cols-2 gap-2 border-t border-night-line pt-3 text-sm">
-          <span className="flex flex-col">
-            <span className="text-accent">In today</span>
-            <span className="text-[17px] font-bold">{money(todayIn)}</span>
-          </span>
-          <span className="flex flex-col">
-            <span className="text-night-muted">Out today</span>
-            <span className="text-[17px] font-bold">{money(todayOut)}</span>
+    <Screen title="Petty cash" nav>
+      <Panel aria-label="Petty cash balance" className="flex flex-col gap-[18px] rounded-3xl p-5">
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[13px] font-medium text-ink-muted">In the cash box now</span>
+          <Amount cents={balance} className="text-[40px]" />
+          <span className="text-[13px] text-ink-muted">
+            Today: <span className="font-semibold text-positive">+{money(todayIn)} in</span> · <span className="font-semibold text-negative">{money(todayOut)} out</span>
           </span>
         </div>
-      </NightCard>
-
-      <div className="grid grid-cols-2 gap-3">
-        <Button size="touch" variant={move === "topup" ? "night" : "outline"} aria-pressed={move === "topup"} onClick={() => setMove("topup")}>
-          <ArrowDownToLine className="size-5" aria-hidden /> Top up
-        </Button>
-        <Button size="touch" variant={move === "deposit" ? "night" : "outline"} aria-pressed={move === "deposit"} onClick={() => setMove("deposit")}>
-          <ArrowUpFromLine className="size-5" aria-hidden /> Deposit
-        </Button>
-      </div>
-
-      {move && (
-        <Card className="flex flex-col gap-3">
-          <p className="text-[15px] font-bold">{move === "topup" ? "Take cash from the bank to put in petty cash" : "Take cash from petty cash to the bank"}</p>
-          <MoneyInput label="How much" value={amountText} onChange={setAmountText} big />
-          <Button size="touch" disabled={!amount} onClick={submit}>
-            Check and save
+        <div className="grid grid-cols-2 gap-2">
+          <Button size="touch" aria-pressed={move === "topup"} onClick={() => setMove(move === "topup" ? null : "topup")}>
+            <ArrowDownToLine className="size-[18px]" strokeWidth={STROKE} aria-hidden /> Top up
           </Button>
-        </Card>
-      )}
+          <Button size="touch" variant="outline" aria-pressed={move === "deposit"} className={cn(move === "deposit" && "border-ink")} onClick={() => setMove(move === "deposit" ? null : "deposit")}>
+            <Landmark className="size-[18px]" strokeWidth={STROKE} aria-hidden /> Bank it
+          </Button>
+        </div>
+        {move && (
+          <div className="flex flex-col gap-3 border-t border-divider pt-4">
+            <p className="text-[15px] font-medium">{move === "topup" ? "Take cash from the bank to put in petty cash" : "Take cash from petty cash to the bank"}</p>
+            <MoneyInput label="How much" value={amountText} onChange={setAmountText} />
+            <Button size="primary" disabled={!amount} onClick={submit}>
+              {move === "topup" ? "Review top-up" : "Review deposit"}
+            </Button>
+          </div>
+        )}
+      </Panel>
 
-      <SectionTitle>Every rand in and out</SectionTitle>
-      <ul className="flex flex-col divide-y divide-divider overflow-hidden rounded-[18px] border-[1.5px] border-divider bg-page">
-        {rows.slice(0, limit).map((r) => (
-          <li key={r.id} className="flex items-center gap-3 px-4 py-2.5">
-            <span className="flex min-w-0 flex-1 flex-col">
-              <span className="truncate text-[15px] font-bold">{r.title}</span>
-              <span className="text-[13px] text-ink-muted">
-                {relativeDay(r.date, snapshot.today)}
-                {r.isUser && " · added in demo"}
-              </span>
-            </span>
-            <span className="flex flex-col items-end">
-              <span className={cn("text-[17px] font-bold tabular-nums", r.amount > 0 ? "text-brand" : "text-negative")}>
-                {r.amount > 0 ? "+" : "−"}
-                {money(Math.abs(r.amount))}
-              </span>
-              <span className="text-[13px] text-ink-muted tabular-nums">left {money(r.balance)}</span>
-            </span>
-          </li>
+      <section aria-label="Movements" className="mt-1.5 flex flex-col gap-2">
+        {byDay(rows.slice(0, limit)).map((group) => (
+          <Fragment key={group.date}>
+            <DayHeading>{relativeDay(group.date, snapshot.today)}</DayHeading>
+            <Panel className="flex flex-col">
+              {group.rows.map((r, i) => (
+                <Fragment key={r.id}>
+                  {i > 0 && <Divider />}
+                  <div className="flex items-center gap-3 px-3.5 py-3">
+                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <span className="truncate text-[15px] font-medium">{r.title}</span>
+                      <span className="truncate text-[13px] text-ink-muted">
+                        {r.detail}
+                        {r.time && ` · ${r.time}`}
+                      </span>
+                    </span>
+                    <span className="flex flex-col items-end gap-0.5">
+                      <span className={cn("text-[15px] font-semibold whitespace-nowrap", r.amount > 0 ? "text-positive" : "text-negative")}>
+                        {r.amount > 0 ? "+" : "−"}
+                        {money(Math.abs(r.amount))}
+                      </span>
+                      <span className="text-xs text-ink-faint">{money(r.balance)}</span>
+                    </span>
+                  </div>
+                </Fragment>
+              ))}
+            </Panel>
+          </Fragment>
         ))}
-      </ul>
-      {rows.length > limit && (
-        <Button variant="outline" size="touch" onClick={() => setLimit(limit + 50)}>
-          Show older
-        </Button>
-      )}
+        {rows.length > limit && (
+          <Button variant="outline" size="touch" className="mt-2" onClick={() => setLimit(limit + 50)}>
+            Show older
+          </Button>
+        )}
+      </section>
       {sheet}
     </Screen>
   );

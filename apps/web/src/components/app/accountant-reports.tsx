@@ -43,7 +43,7 @@ const longDate = (d: string) => formatDay(d, { day: "numeric", month: "long", ye
 
 export function TrialBalanceTable({ entries, asAt, stockTies }: { entries: readonly JournalEntry[]; asAt: string; stockTies: boolean }) {
   const tb = trialBalance(entries, asAt);
-  const row = "grid grid-cols-[72px_minmax(0,1fr)_120px_120px] gap-3 px-3";
+  const row = "grid grid-cols-[40px_minmax(0,1fr)_84px_84px] gap-2 px-2 sm:grid-cols-[72px_minmax(0,1fr)_120px_120px] sm:gap-3 sm:px-3";
   return (
     <div className="flex flex-col gap-4">
       <SectionHeader title="Trial balance" subtitle={`As at ${longDate(asAt)}`} />
@@ -52,7 +52,7 @@ export function TrialBalanceTable({ entries, asAt, stockTies }: { entries: reado
         <Status ok={stockTies}>{stockTies ? "Stock records tie to 1200 Inventory" : "Stock records do not tie"}</Status>
       </div>
       <div className="overflow-x-auto">
-        <div role="table" aria-label="Trial balance" className="flex min-w-[520px] flex-col text-sm">
+        <div role="table" aria-label="Trial balance" className="flex flex-col text-[13px] sm:min-w-[520px] sm:text-sm">
           <div role="row" className={cn(row, "pb-2.5 text-xs font-medium text-ink-muted")}>
             <span role="columnheader">Code</span>
             <span role="columnheader">Account</span>

@@ -1,12 +1,13 @@
 "use client";
 
-import { Download } from "lucide-react";
+import { Download, X } from "lucide-react";
 import { Fragment, useMemo, useState, useSyncExternalStore } from "react";
 import { formatDay } from "@/books/dates";
 import type { EntryType } from "@/books/describe";
 import { byDay, journalRows, type JournalRow } from "@/books/selectors";
 import type { BooksSnapshot } from "@/books/store";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { money, relativeDay } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { SectionHeader, Status } from "./accountant-reports";
@@ -51,10 +52,33 @@ function keep(r: JournalRow, f: Filter, today: string): boolean {
   }
 }
 
+const WIDE = "(min-width: 1280px)";
+
+/** True at 1280px and up, where the entry panel sits beside the table. */
+function useWide(): boolean {
+  return useSyncExternalStore(
+    (cb) => {
+      const m = window.matchMedia(WIDE);
+      m.addEventListener("change", cb);
+      return () => m.removeEventListener("change", cb);
+    },
+    () => window.matchMedia(WIDE).matches,
+    () => true,
+  );
+}
+
 /** The entry id in ?entry=, read from the browser so the page can stay prerendered. */
 function useEntryParam(): string | null {
   return useSyncExternalStore(
-    () => () => {},
+    (cb) => {
+      // After a client-side navigation the URL is updated after the first render: read it again.
+      const t = window.setTimeout(cb, 0);
+      window.addEventListener("popstate", cb);
+      return () => {
+        window.clearTimeout(t);
+        window.removeEventListener("popstate", cb);
+      };
+    },
     () => new URLSearchParams(window.location.search).get("entry"),
     () => null,
   );
@@ -78,17 +102,28 @@ export function AccountantJournal({ snapshot, onExport }: { snapshot: BooksSnaps
   const allDebits = all.reduce((s, r) => s + r.entry.lines.reduce((t, l) => t + l.debit, 0), 0);
   const allCredits = all.reduce((s, r) => s + r.entry.lines.reduce((t, l) => t + l.credit, 0), 0);
 
+  const wide = useWide();
+  // Below 1280px the entry opens as a full-screen sheet; a link from the app opens it straight away.
+  const [sheetFor, setSheetFor] = useState<string | null>(null);
+  const [dismissed, setDismissed] = useState<string | null>(null);
+  const sheetOpen = !!(sheetFor ?? (focus && dismissed !== focus ? focus : null));
+
   function pick(id: string) {
     setPicked(id);
-    // Below the wide layout the entry panel sits under the table: bring it into view.
-    if (window.matchMedia("(max-width: 1279px)").matches) document.getElementById("entry-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setSheetFor(id);
+  }
+
+  function closeSheet(open: boolean) {
+    if (open) return;
+    setSheetFor(null);
+    setDismissed(focus);
   }
 
   const cols = "grid grid-cols-[44px_minmax(0,1fr)_92px] items-center gap-3 sm:grid-cols-[64px_minmax(0,1fr)_120px_110px]";
 
   return (
     <div className="flex min-w-0 flex-col xl:flex-row">
-      <div className="flex min-w-0 flex-1 flex-col gap-5 px-4 pt-6 pb-10 sm:px-7 sm:pt-7">
+      <div className="flex min-w-0 flex-1 flex-col gap-5 px-4 pt-6 pb-10 sm:px-7 sm:pt-7 lg:px-8">
         <SectionHeader
           title="Journal"
           subtitle="Every action in the app, recorded as double entry"
@@ -99,7 +134,7 @@ export function AccountantJournal({ snapshot, onExport }: { snapshot: BooksSnaps
           }
         />
 
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(150px,100%),1fr))] gap-2.5">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(130px,100%),1fr))] gap-2.5">
           <Kpi label="Entries today" value={String(today.length)} />
           <Kpi label="Total debits" value={money(todayDebits)} />
           <Kpi label="Total credits" value={money(todayCredits)} />
@@ -180,7 +215,22 @@ export function AccountantJournal({ snapshot, onExport }: { snapshot: BooksSnaps
         )}
       </div>
 
-      {selected && <EntryPanel row={selected} today={snapshot.today} />}
+      {selected && wide && <EntryPanel row={selected} today={snapshot.today} />}
+      {selected && !wide && (
+        <Sheet open={sheetOpen} onOpenChange={closeSheet}>
+          <SheetContent side="bottom" showCloseButton={false} className="h-dvh max-h-dvh gap-0 overflow-y-auto border-0 p-0">
+            <SheetClose className="absolute top-3 right-3 z-10 flex size-11 items-center justify-center rounded-full bg-panel hover:bg-panel-strong">
+              <X className="size-5" strokeWidth={STROKE} aria-hidden />
+              <span className="sr-only">Close</span>
+            </SheetClose>
+            <SheetTitle className="sr-only">{selected.title}</SheetTitle>
+            <SheetDescription className="sr-only">Journal entry {selected.ref}</SheetDescription>
+            <div className="mx-auto w-full max-w-[640px]">
+              <EntryPanel row={selected} today={snapshot.today} />
+            </div>
+          </SheetContent>
+        </Sheet>
+      )}
     </div>
   );
 }
@@ -196,7 +246,7 @@ function Kpi({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-1 rounded-2xl bg-panel px-4 py-3.5">
       <span className="text-xs font-medium text-ink-muted">{label}</span>
-      <span className="text-[22px] font-semibold">{value}</span>
+      <span className="text-xl font-semibold whitespace-nowrap 2xl:text-[22px]">{value}</span>
     </div>
   );
 }
@@ -206,7 +256,7 @@ function EntryPanel({ row, today }: { row: JournalRow; today: string }) {
   const credit = row.entry.lines.reduce((s, l) => s + l.credit, 0);
   const when = row.entry.date === today ? `today ${row.time}` : `${row.entry.date} ${row.time}`;
   return (
-    <aside id="entry-panel" aria-label="Journal entry" className="flex w-full scroll-mt-4 flex-col gap-[18px] border-t border-hairline px-4 py-7 sm:px-6 xl:w-[380px] xl:shrink-0 xl:border-t-0 xl:border-l">
+    <aside aria-label="Journal entry" className="flex w-full flex-col gap-[18px] px-5 pt-14 pb-8 sm:px-6 xl:w-[360px] xl:shrink-0 xl:border-l xl:border-hairline xl:pt-7">
       <div className="flex flex-col gap-1.5">
         <span className="font-mono text-xs font-medium text-ink-muted">{row.ref}</span>
         <span className="text-xl font-semibold tracking-[-0.01em]">{row.title}</span>

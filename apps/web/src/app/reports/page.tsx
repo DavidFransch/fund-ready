@@ -31,40 +31,51 @@ export default function ReportsPage() {
   const max = Math.max(1, ...bars.map((b) => b.sales));
   const stockLost = sum.expenseLines.find((l) => l.code === ACC.stockAdjustments)?.amount ?? 0;
   const running = sum.expenseLines.filter((l) => l.code !== ACC.stockAdjustments);
+  const picker = (
+    <PeriodPicker
+      today={snapshot.today}
+      kind={kind}
+      offset={offset}
+      onChange={(k, o) => {
+        setKind(k);
+        setOffset(o);
+      }}
+    />
+  );
 
   return (
-    <Screen title="Reports" nav>
-      <PeriodPicker
-        today={snapshot.today}
-        kind={kind}
-        offset={offset}
-        onChange={(k, o) => {
-          setKind(k);
-          setOffset(o);
-        }}
-      />
+    <Screen title="Reports" nav actions={picker}>
+      <div className="lg:hidden">{picker}</div>
 
-      <section aria-label={sum.netProfit < 0 ? "Loss" : "Profit"} className="flex flex-col gap-1.5 px-1">
+      <div className="hidden grid-cols-3 gap-3 lg:grid">
+        <Kpi label="Sales" cents={sum.sales} />
+        <Kpi label="Expenses" cents={sum.costOfSales + sum.expenses} note={`incl. ${money(sum.costOfSales)} cost of what you sold`} />
+        <Kpi label={sum.netProfit < 0 ? "Loss" : "Profit"} cents={Math.abs(sum.netProfit)} tone={sum.netProfit < 0 ? "negative" : "positive"} />
+      </div>
+
+      <section aria-label={sum.netProfit < 0 ? "Loss" : "Profit"} className="flex flex-col gap-1.5 px-1 lg:hidden">
         <span className="text-[13px] font-medium text-ink-muted">{sum.netProfit < 0 ? "Loss" : "Profit"}</span>
         <Amount cents={Math.abs(sum.netProfit)} className={cn("text-[40px]", sum.netProfit < 0 && "text-negative")} />
       </section>
 
-      <Panel aria-label="Sales by period" className="flex flex-col gap-2.5 rounded-[20px] px-3.5 pt-4 pb-3">
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-3 lg:items-start lg:gap-6">
+      <Panel aria-label="Sales by period" className="flex flex-col gap-2.5 rounded-[20px] px-3.5 pt-4 pb-3 lg:col-span-2 lg:px-5 lg:pt-5">
         <div className="flex items-baseline justify-between">
           <span className="text-[13px] font-medium text-ink-muted">Sales</span>
           <span className="text-[15px] font-semibold">{money(sum.sales)}</span>
         </div>
-        <div role="img" aria-label={`Sales for ${range.label.toLowerCase()}: ${bars.map((b) => `${b.label} ${money(b.sales)}`).join(", ")}`} className="flex h-[110px] items-end gap-2">
+        <div role="img" aria-label={`Sales for ${range.label.toLowerCase()}: ${bars.map((b) => `${b.label} ${money(b.sales)}`).join(", ")}`} className="flex h-[110px] items-end gap-2 lg:h-[260px] lg:gap-4">
           {bars.map((b) => (
             <div key={b.label} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1.5">
-              <div className={cn("min-h-1 w-full max-w-7 rounded-md", b.current ? "bg-brand" : "bg-chart-muted")} style={{ height: `${Math.round((b.sales / max) * 84)}px` }} />
+              {b.sales > 0 && <span className="hidden text-[11px] text-ink-muted lg:block">{money(b.sales)}</span>}
+              <div className={cn("min-h-1 w-full max-w-7 rounded-md lg:max-w-12", b.current ? "bg-brand" : "bg-chart-muted")} style={{ height: `${Math.round((b.sales / max) * 100) * 0.84}%` }} />
               <span className="text-[11px] whitespace-nowrap text-ink-muted">{b.label}</span>
             </div>
           ))}
         </div>
       </Panel>
 
-      <Panel aria-label="Breakdown" className="flex flex-col rounded-[20px]">
+      <Panel aria-label="Breakdown" className="flex flex-col rounded-[20px] lg:col-span-1">
         <div className="flex justify-between px-3.5 py-[13px] text-[15px]">
           <span>Sales</span>
           <span className="font-semibold">{money(sum.sales)}</span>
@@ -96,6 +107,7 @@ export default function ReportsPage() {
           <span className={sum.netProfit < 0 ? "text-negative" : "text-positive"}>{money(Math.abs(sum.netProfit))}</span>
         </div>
       </Panel>
+      </div>
 
       {kind === "day" && dayActivity.length > 0 && (
         <Fragment>
@@ -104,5 +116,15 @@ export default function ReportsPage() {
         </Fragment>
       )}
     </Screen>
+  );
+}
+
+function Kpi({ label, cents, note, tone }: { label: string; cents: number; note?: string; tone?: "positive" | "negative" }) {
+  return (
+    <div className="flex flex-col gap-1.5 rounded-[20px] bg-panel px-5 py-4">
+      <span className="text-[13px] font-medium text-ink-muted">{label}</span>
+      <Amount cents={cents} className={cn("text-[32px]", tone === "positive" && "text-positive", tone === "negative" && "text-negative")} />
+      {note && <span className="text-xs text-ink-muted">{note}</span>}
+    </div>
   );
 }

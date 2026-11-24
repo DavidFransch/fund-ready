@@ -20,9 +20,11 @@ export function PeriodPicker({ today, kind, offset, onChange }: { today: string;
       ? formatDay(range.from, { weekday: "long", day: "numeric", month: "short" })
       : `${formatDay(range.from, { day: "numeric", month: "short" })} – ${formatDay(range.to, { day: "numeric", month: "short" })}`;
   return (
-    <div className="flex flex-col gap-3.5">
-      <Segmented label="Period" options={KINDS} value={kind} onChange={(k) => onChange(k, 0)} />
-      <div className="-mx-2 flex items-center justify-between">
+    <div className="flex flex-col gap-3.5 lg:flex-row lg:items-center lg:gap-4">
+      <div className="lg:w-[264px]">
+        <Segmented label="Period" options={KINDS} value={kind} onChange={(k) => onChange(k, 0)} />
+      </div>
+      <div className="-mx-2 flex items-center justify-between lg:mx-0 lg:min-w-[260px] lg:gap-2">
         <button type="button" className={arrow} aria-label="Previous period" onClick={() => onChange(kind, offset - 1)}>
           <ChevronLeft className="size-[22px]" strokeWidth={STROKE} aria-hidden />
         </button>

@@ -178,7 +178,8 @@ export function generateSampleBusiness(today: string): SampleBusiness {
     // Bread and milk come off the van every second day, paid from the cash box.
     if (dow % 2 === 1) restock(d, ["bread", "milk"], SUPPLIERS.van, cash() > rand(900) ? "cash" : "bank");
     // Dry goods on account from the wholesaler every Monday, settled by EFT on Fridays.
-    if (dow === 1) restock(d, ["cooldrink", "maize", "sugar", "oil", "soap"], SUPPLIERS.wholesaler, "credit");
+    // (The demo item is left out on the last day so it can land on its known quantity.)
+    if (dow === 1) restock(d, ["cooldrink", "maize", "sugar", "oil", "soap"].filter((id) => d !== end || id !== HERO_ITEM), SUPPLIERS.wholesaler, "credit");
     if (dow === 5) {
       const owed = supplierBalances(commands).find((b) => b.supplier === SUPPLIERS.wholesaler)?.amount ?? 0;
       if (owed > 0) add({ kind: "payment_made", date: d, amount: owed, from: "bank", supplier: SUPPLIERS.wholesaler });

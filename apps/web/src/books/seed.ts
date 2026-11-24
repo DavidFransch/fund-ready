@@ -167,9 +167,11 @@ export function generateSampleBusiness(today: string): SampleBusiness {
 
     // Morning and afternoon trade; quieter on Sundays.
     for (const share of dow === 0 ? [0.5, 0.5] : [0.6, 0.5, 0.6]) {
-      const lines = SAMPLE_ITEMS.filter((i) => qty(i.id) > 0 && r.chance(share)).map((i) =>
+      const lines = SAMPLE_ITEMS.filter((i) => qty(i.id) > 0 && r.chance(share) && !(d === end && i.id === HERO_ITEM)).map((i) =>
         saleLine(i.id, Math.min(qty(i.id), r.int(1, Math.max(1, Math.round((i.reorderLevel ?? 5) / 4))))),
       );
+      // On the last day, sell the demo item down towards its known quantity, a couple at a time.
+      if (d === end && qty(HERO_ITEM) > HERO_QTY) lines.push(saleLine(HERO_ITEM, Math.min(2, qty(HERO_ITEM) - HERO_QTY)));
       if (lines.length) add({ kind: "sale", date: d, paidWith: r.chance(0.85) ? "cash" : "card", lines });
     }
 
@@ -198,7 +200,7 @@ export function generateSampleBusiness(today: string): SampleBusiness {
     if (cash() < rand(500)) add({ kind: "transfer", date: d, amount: rand(1000), from: "bank", to: "cash" });
   }
 
-  // Land the demo item on a known quantity: sell the extra, or buy the shortfall.
+  // Whatever is still off after the last day's trade: sell the extra, or buy the shortfall.
   const hero = qty(HERO_ITEM);
   if (hero > HERO_QTY) {
     add({ kind: "sale", date: end, paidWith: "cash", lines: [saleLine(HERO_ITEM, hero - HERO_QTY)] });

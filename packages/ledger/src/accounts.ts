@@ -36,6 +36,7 @@ export const ACC = {
   utilities: "6300",
   phoneData: "6400",
   bankCharges: "6500",
+  packaging: "6600",
   otherExpenses: "6900",
 } as const;
 
@@ -62,6 +63,7 @@ export const CHART: readonly Account[] = [
   { code: ACC.utilities, name: "Electricity and water", plainName: "Electricity and water", type: "expense", group: "operating_expense" },
   { code: ACC.phoneData, name: "Telephone and data", plainName: "Airtime and data", type: "expense", group: "operating_expense" },
   { code: ACC.bankCharges, name: "Bank charges", plainName: "Bank fees", type: "expense", group: "operating_expense" },
+  { code: ACC.packaging, name: "Packaging materials", plainName: "Packaging", type: "expense", group: "operating_expense" },
   { code: ACC.otherExpenses, name: "Sundry expenses", plainName: "Other", type: "expense", group: "operating_expense" },
 ];
 
@@ -88,6 +90,7 @@ export function isDebitNormal(type: AccountType): boolean {
  */
 export const EXPENSE_CATEGORIES = [
   { id: "stock", label: "Stock", account: ACC.stock },
+  { id: "packaging", label: "Packaging", account: ACC.packaging },
   { id: "transport", label: "Transport", account: ACC.transport },
   { id: "rent", label: "Rent", account: ACC.rent },
   { id: "wages", label: "Wages", account: ACC.wages },

@@ -63,11 +63,24 @@ export interface RecordExpense {
   date: IsoDate;
   amount: Cents;
   category: ExpenseCategoryId;
-  /** "own" means the owner paid from their own pocket: the business now owes them. */
-  paidFrom: MoneyPlace | "own";
+  /**
+   * "own" means the owner paid from their own pocket: the business now owes them.
+   * "credit" means the supplier is paid later: the business owes the supplier.
+   */
+  paidFrom: MoneyPlace | "own" | "credit";
   supplier?: string;
   /** Required when category is "stock"; costs must add up to `amount`. */
   stockLines?: StockPurchaseLine[];
+}
+
+/** Pay a supplier for something bought earlier on credit. */
+export interface PaySupplier {
+  kind: "payment_made";
+  id: string;
+  date: IsoDate;
+  amount: Cents;
+  from: MoneyPlace;
+  supplier: string;
 }
 
 export interface RecordStockCount {
@@ -116,6 +129,7 @@ export interface OpeningBalances {
 export type Command =
   | RecordSale
   | ReceivePayment
+  | PaySupplier
   | RecordExpense
   | RecordStockCount
   | Transfer
@@ -183,6 +197,8 @@ export function post(cmd: Command, ctx: PostingContext): PostingResult {
       return postSale(cmd, ctx);
     case "payment_received":
       return postPayment(cmd);
+    case "payment_made":
+      return postSupplierPayment(cmd);
     case "expense":
       return postExpense(cmd, ctx);
     case "stock_count":
@@ -261,9 +277,31 @@ function postPayment(cmd: ReceivePayment): PostingResult {
   return { entry, movements: [] };
 }
 
+function postSupplierPayment(cmd: PaySupplier): PostingResult {
+  positive(cmd.amount, "Payment");
+  if (!cmd.supplier?.trim()) throw new LedgerError("Say which supplier you paid");
+  const entry = makeEntry({
+    id: cmd.id,
+    date: cmd.date,
+    memo: `Paid ${cmd.supplier.trim()}`,
+    source: { type: "payment_made", ref: cmd.supplier.trim() },
+    lines: [dr(ACC.creditors, cmd.amount), cr(PLACE_ACCOUNT[cmd.from], cmd.amount)],
+  });
+  return { entry, movements: [] };
+}
+
+function expenseCreditAccount(paidFrom: RecordExpense["paidFrom"]): AccountCode {
+  if (paidFrom === "own") return ACC.ownerLoan;
+  if (paidFrom === "credit") return ACC.creditors;
+  return PLACE_ACCOUNT[paidFrom];
+}
+
 function postExpense(cmd: RecordExpense, ctx: PostingContext): PostingResult {
   positive(cmd.amount, "Amount");
-  const credit = cmd.paidFrom === "own" ? ACC.ownerLoan : PLACE_ACCOUNT[cmd.paidFrom];
+  if (cmd.paidFrom === "credit" && !cmd.supplier?.trim()) {
+    throw new LedgerError("Say which supplier you will pay later");
+  }
+  const credit = expenseCreditAccount(cmd.paidFrom);
   const category = expenseCategory(cmd.category);
   const movements: StockMovement[] = [];
   const debitLines: JournalLine[] = [];
@@ -328,8 +366,8 @@ function postExpense(cmd: RecordExpense, ctx: PostingContext): PostingResult {
   const entry = makeEntry({
     id: cmd.id,
     date: cmd.date,
-    memo: `${category.label}${cmd.supplier ? ` from ${cmd.supplier}` : ""}${cmd.paidFrom === "own" ? " (paid by owner)" : ""}`,
-    source: { type: "expense" },
+    memo: `${category.label}${cmd.supplier ? ` from ${cmd.supplier}` : ""}${cmd.paidFrom === "own" ? " (paid by owner)" : ""}${cmd.paidFrom === "credit" ? " (pay later)" : ""}`,
+    source: { type: "expense", ...(cmd.paidFrom === "credit" && cmd.supplier ? { ref: cmd.supplier.trim() } : {}) },
     lines: [...debitLines, cr(credit, cmd.amount)],
   });
   return { entry, movements };

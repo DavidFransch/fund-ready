@@ -6,6 +6,7 @@ export * from "./journal";
 export * from "./inventory";
 export * from "./posting";
 export * from "./reports";
+export * from "./payables";
 export * from "./compliance";
 export * from "./exports";
 export * from "./book";

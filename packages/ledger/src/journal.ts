@@ -14,6 +14,7 @@ export type SourceType =
   | "opening_balance"
   | "sale"
   | "payment_received"
+  | "payment_made"
   | "expense"
   | "stock_count"
   | "transfer"

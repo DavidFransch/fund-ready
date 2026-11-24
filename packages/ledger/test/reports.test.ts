@@ -128,11 +128,12 @@ describe("invariants under random activity", () => {
         { minLength: 1, maxLength: 4 },
       ),
     }),
-    fc.record({ kind: fc.constant("expense" as const), date: day, amount: money, category: fc.constantFrom<ExpenseCategoryId[]>("rent", "transport", "wages", "other"), paidFrom: fc.constantFrom<("cash" | "bank" | "own")[]>("cash", "bank", "own") }),
-    fc.record({ kind: fc.constant("stock_purchase" as const), date: day, paidFrom: fc.constantFrom<("cash" | "bank" | "own")[]>("cash", "bank", "own"), lines: fc.array(fc.record({ itemId: fc.constantFrom(...stockIds), qty, cost: money }), { minLength: 1, maxLength: 3 }) }),
+    fc.record({ kind: fc.constant("expense" as const), date: day, amount: money, category: fc.constantFrom<ExpenseCategoryId[]>("rent", "transport", "wages", "packaging", "other"), paidFrom: fc.constantFrom<("cash" | "bank" | "own" | "credit")[]>("cash", "bank", "own", "credit") }),
+    fc.record({ kind: fc.constant("stock_purchase" as const), date: day, paidFrom: fc.constantFrom<("cash" | "bank" | "own" | "credit")[]>("cash", "bank", "own", "credit"), lines: fc.array(fc.record({ itemId: fc.constantFrom(...stockIds), qty, cost: money }), { minLength: 1, maxLength: 3 }) }),
     fc.record({ kind: fc.constant("stock_count" as const), date: day, itemId: fc.constantFrom(...stockIds), counted: fc.integer({ min: 0, max: 200 }), reason: fc.constantFrom<("used" | "lost")[]>("used", "lost") }),
     fc.record({ kind: fc.constant("payment_received" as const), date: day, amount: money, into: fc.constantFrom<MoneyPlace[]>("cash", "bank") }),
     fc.record({ kind: fc.constant("transfer" as const), date: day, amount: money, to: fc.constantFrom<MoneyPlace[]>("cash", "bank") }),
+    fc.record({ kind: fc.constant("payment_made" as const), date: day, amount: money, from: fc.constantFrom<MoneyPlace[]>("cash", "bank") }),
   );
 
   it("keeps debits = credits, balance sheet balanced, and stock sub-ledger = Stock account", () => {
@@ -146,15 +147,17 @@ describe("invariants under random activity", () => {
               case "sale":
                 return { kind: "sale", id, date: r.date, paidWith: r.paidWith, customer: "Customer", lines: r.lines.map((l) => ({ ...(l.itemId ? { itemId: l.itemId } : {}), description: "line", qty: l.qty, unitPrice: l.unitPrice })) };
               case "expense":
-                return { kind: "expense", id, date: r.date, amount: r.amount, category: r.category, paidFrom: r.paidFrom };
+                return { kind: "expense", id, date: r.date, amount: r.amount, category: r.category, paidFrom: r.paidFrom, supplier: "Supplier" };
               case "stock_purchase":
-                return { kind: "expense", id, date: r.date, category: "stock", paidFrom: r.paidFrom, amount: r.lines.reduce((s, l) => s + l.cost, 0), stockLines: r.lines.filter((l, j, a) => a.findIndex((x) => x.itemId === l.itemId) === j) };
+                return { kind: "expense", id, date: r.date, category: "stock", paidFrom: r.paidFrom, supplier: "Supplier", amount: r.lines.reduce((s, l) => s + l.cost, 0), stockLines: r.lines.filter((l, j, a) => a.findIndex((x) => x.itemId === l.itemId) === j) };
               case "stock_count":
                 return { kind: "stock_count", id, date: r.date, counts: [{ itemId: r.itemId, counted: r.counted, reason: r.reason }] };
               case "payment_received":
                 return { kind: "payment_received", id, date: r.date, amount: r.amount, into: r.into };
               case "transfer":
                 return { kind: "transfer", id, date: r.date, amount: r.amount, from: r.to === "cash" ? "bank" : "cash", to: r.to };
+              case "payment_made":
+                return { kind: "payment_made", id, date: r.date, amount: r.amount, from: r.from, supplier: "Supplier" };
             }
           })
           // Dated commands are applied in date order, as the database will replay them.

@@ -187,5 +187,6 @@ export function positions(entries: readonly JournalEntry[], asAt?: IsoDate) {
     owedToYou: net.get(ACC.debtors) ?? 0,
     stockValue: net.get(ACC.stock) ?? 0,
     owedToOwner: -(net.get(ACC.ownerLoan) ?? 0),
+    owedToSuppliers: 0 - (net.get(ACC.creditors) ?? 0),
   };
 }

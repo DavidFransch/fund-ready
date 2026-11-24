@@ -13,6 +13,8 @@ import { cn } from "@/lib/utils";
 
 type Move = "topup" | "deposit";
 
+const TABLE_COLS = "grid grid-cols-[56px_minmax(0,1fr)_104px_104px_112px] gap-3";
+
 export default function PettyCashPage() {
   const { snapshot, check, sheet } = useConfirmedAction({ after: null });
   const [move, setMove] = useState<Move | null>(null);
@@ -35,7 +37,8 @@ export default function PettyCashPage() {
 
   return (
     <Screen title="Petty cash" nav>
-      <Panel aria-label="Petty cash balance" className="flex flex-col gap-[18px] rounded-3xl p-5">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] lg:items-start lg:gap-6">
+      <Panel aria-label="Petty cash balance" className="flex flex-col gap-[18px] rounded-3xl p-5 lg:sticky lg:top-8">
         <div className="flex flex-col gap-1.5">
           <span className="text-[13px] font-medium text-ink-muted">In the cash box now</span>
           <Amount cents={balance} className="text-[40px]" />
@@ -62,7 +65,7 @@ export default function PettyCashPage() {
         )}
       </Panel>
 
-      <section aria-label="Movements" className="mt-1.5 flex flex-col gap-2">
+      <section aria-label="Movements" className="mt-1.5 flex flex-col gap-2 lg:hidden">
         {byDay(rows.slice(0, limit)).map((group) => (
           <Fragment key={group.date}>
             <DayHeading>{relativeDay(group.date, snapshot.today)}</DayHeading>
@@ -97,6 +100,59 @@ export default function PettyCashPage() {
           </Button>
         )}
       </section>
+
+      <section aria-label="Movements" className="hidden min-w-0 flex-col gap-3 lg:flex">
+        <div className="overflow-x-auto">
+        <div role="table" aria-label="Petty cash movements" className="flex min-w-[540px] flex-col text-sm">
+          <div role="row" className={cn(TABLE_COLS, "px-3 pb-2.5 text-xs font-medium text-ink-muted")}>
+            <span role="columnheader">Time</span>
+            <span role="columnheader">What</span>
+            <span role="columnheader" className="text-right">
+              In
+            </span>
+            <span role="columnheader" className="text-right">
+              Out
+            </span>
+            <span role="columnheader" className="text-right">
+              Balance
+            </span>
+          </div>
+          {byDay(rows.slice(0, limit)).map((group) => (
+            <Fragment key={group.date}>
+              <div role="row" className="mt-1 rounded-lg bg-panel px-3 py-2 text-xs font-semibold text-ink-muted">
+                <span role="cell">{relativeDay(group.date, snapshot.today)}</span>
+              </div>
+              {group.rows.map((r) => (
+                <div role="row" key={r.id} className={cn(TABLE_COLS, "items-center border-b border-hairline px-3 py-3")}>
+                  <span role="cell" className="text-ink-muted">
+                    {r.time}
+                  </span>
+                  <span role="cell" className="flex min-w-0 flex-col gap-0.5">
+                    <span className="truncate font-medium">{r.title}</span>
+                    <span className="truncate text-[13px] text-ink-muted">{r.detail}</span>
+                  </span>
+                  <span role="cell" className="text-right font-semibold text-positive">
+                    {r.amount > 0 ? money(r.amount) : ""}
+                  </span>
+                  <span role="cell" className="text-right font-semibold text-negative">
+                    {r.amount < 0 ? money(-r.amount) : ""}
+                  </span>
+                  <span role="cell" className="text-right text-ink-muted">
+                    {money(r.balance)}
+                  </span>
+                </div>
+              ))}
+            </Fragment>
+          ))}
+        </div>
+        </div>
+        {rows.length > limit && (
+          <Button variant="outline" size="touch" className="self-center" onClick={() => setLimit(limit + 50)}>
+            Show older
+          </Button>
+        )}
+      </section>
+      </div>
       {sheet}
     </Screen>
   );

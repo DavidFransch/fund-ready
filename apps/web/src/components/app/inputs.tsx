@@ -4,6 +4,7 @@ import { LedgerError, rand } from "@app/ledger";
 import { Minus, Plus } from "lucide-react";
 import { useId } from "react";
 import { cn } from "@/lib/utils";
+import { STROKE } from "./screen";
 
 /** Parse what the user typed into whole cents, or null if it is not a valid amount. */
 export function parseRand(text: string): number | null {
@@ -17,39 +18,23 @@ export function parseRand(text: string): number | null {
   }
 }
 
-/** Cents back into the plain text a user would type, e.g. 38400 -> "384", 1250 -> "12.50". */
+/** Cents back into the plain text a user would type, e.g. 2200 -> "22.00". */
 export function centsToText(cents: number): string {
-  return cents % 100 === 0 ? String(cents / 100) : (cents / 100).toFixed(2);
+  return (cents / 100).toFixed(2);
 }
 
-export function MoneyInput({
-  label,
-  value,
-  onChange,
-  big = false,
-  hint,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  big?: boolean;
-  hint?: string;
-}) {
+const field = "h-12 w-full min-w-0 rounded-xl border border-input-border bg-page px-3.5 outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/20";
+
+export function MoneyInput({ label, value, onChange, hint }: { label: string; value: string; onChange: (v: string) => void; hint?: string; /** @deprecated shim */ big?: boolean }) {
   const id = useId();
   const invalid = value.trim() !== "" && parseRand(value) === null;
   return (
-    <div className="flex min-w-0 flex-col gap-1">
-      <label htmlFor={id} className="text-sm text-ink-muted">
+    <div className="flex min-w-0 flex-col gap-1.5">
+      <label htmlFor={id} className="text-[13px] font-medium text-ink-muted">
         {label}
       </label>
-      <div
-        className={cn(
-          "flex items-center rounded-xl border-[1.5px] border-input-border bg-[#F9FBF9] px-3 focus-within:border-brand",
-          big ? "h-14" : "h-12",
-          invalid && "border-negative",
-        )}
-      >
-        <span className={cn("font-bold text-ink-muted", big ? "text-3xl" : "text-xl")}>R</span>
+      <div className={cn(field, "flex items-center gap-0.5 px-3.5 focus-within:border-brand", invalid && "border-negative")}>
+        <span className="text-lg font-semibold text-ink-muted">R</span>
         <input
           id={id}
           inputMode="decimal"
@@ -57,11 +42,11 @@ export function MoneyInput({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           aria-invalid={invalid || undefined}
-          className={cn("w-full min-w-0 bg-transparent pl-1 font-bold outline-none", big ? "text-3xl" : "text-xl")}
-          placeholder="0"
+          className="w-full min-w-0 bg-transparent text-lg font-semibold outline-none"
+          placeholder="0.00"
         />
       </div>
-      {invalid ? <span className="text-sm text-negative">Type an amount like 120 or 45.50</span> : hint && <span className="text-sm text-ink-muted">{hint}</span>}
+      {invalid ? <span className="text-[13px] text-negative">Type an amount like 120 or 45.50</span> : hint && <span className="text-[13px] text-ink-muted">{hint}</span>}
     </div>
   );
 }
@@ -69,8 +54,8 @@ export function MoneyInput({
 export function TextInput({ label, value, onChange, placeholder, list }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; list?: string[] }) {
   const id = useId();
   return (
-    <div className="flex min-w-0 flex-col gap-1">
-      <label htmlFor={id} className="text-sm text-ink-muted">
+    <div className="flex min-w-0 flex-col gap-1.5">
+      <label htmlFor={id} className="px-1 text-[13px] font-medium text-ink-muted">
         {label}
       </label>
       <input
@@ -80,7 +65,7 @@ export function TextInput({ label, value, onChange, placeholder, list }: { label
         placeholder={placeholder}
         list={list ? `${id}-list` : undefined}
         autoComplete="off"
-        className="h-12 min-w-0 rounded-xl border-[1.5px] border-input-border bg-[#F9FBF9] px-3 text-base outline-none focus:border-brand"
+        className={cn(field, "text-[15px] placeholder:text-ink-faint")}
       />
       {list && (
         <datalist id={`${id}-list`}>
@@ -99,23 +84,74 @@ export interface Choice<T extends string> {
   hint?: string;
 }
 
-/** Single-choice buttons (≥44px). `columns` lays them out in a grid; otherwise they wrap as pills. */
-export function Choices<T extends string>({
-  label,
-  options,
-  value,
-  onChange,
-  columns,
-}: {
-  label: string;
-  options: readonly Choice<T>[];
-  value: T | null;
-  onChange: (v: T) => void;
-  columns?: number;
-}) {
+/** Pill track with a white selected segment. */
+export function Segmented<T extends string>({ label, options, value, onChange }: { label: string; options: readonly Choice<T>[]; value: T; onChange: (v: T) => void }) {
   return (
-    <div role="group" aria-label={label} className="flex flex-col gap-1.5">
-      <span className="text-sm text-ink-muted">{label}</span>
+    <div role="group" aria-label={label} className="grid gap-1 rounded-full bg-panel-strong p-1" style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}>
+      {options.map((o) => {
+        const selected = o.value === value;
+        return (
+          <button
+            key={o.value}
+            type="button"
+            aria-pressed={selected}
+            onClick={() => onChange(o.value)}
+            className={cn("h-10 rounded-full text-sm", selected ? "bg-page font-semibold text-ink shadow-[0_1px_3px_rgba(17,20,18,0.1)]" : "font-medium text-ink-muted")}
+          >
+            {o.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function CheckDot() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden className="shrink-0">
+      <circle cx="12" cy="12" r="10" className="fill-brand" />
+      <path d="M8 12.5l2.5 2.5L16 9.5" stroke="#fff" strokeWidth="2.25" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/** Grey tiles with a secondary line; the selected one gets a brand border and check. */
+export function ChoiceTiles<T extends string>({ label, options, value, onChange }: { label: string; options: readonly Choice<T>[]; value: T | null; onChange: (v: T) => void }) {
+  return (
+    <fieldset className="flex flex-col gap-2">
+      <legend className="mb-2 px-1 text-[13px] font-medium text-ink-muted">{label}</legend>
+      <div className="grid grid-cols-2 gap-2">
+        {options.map((o) => {
+          const selected = o.value === value;
+          return (
+            <button
+              key={o.value}
+              type="button"
+              aria-pressed={selected}
+              onClick={() => onChange(o.value)}
+              className={cn(
+                "flex min-h-16 flex-col items-start justify-center gap-0.5 rounded-[14px] px-3 py-2.5 text-left",
+                selected ? "border-[1.5px] border-brand bg-brand-wash" : "border border-panel bg-panel hover:border-input-border",
+              )}
+            >
+              <span className="flex items-center gap-1.5 text-sm font-semibold">
+                {selected && <CheckDot />}
+                {o.label}
+              </span>
+              {o.hint && <span className="text-xs text-ink-muted">{o.hint}</span>}
+            </button>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}
+
+/** Outline pills; the selected one is filled with ink. `columns` lays them out in a grid. */
+export function Chips<T extends string>({ label, options, value, onChange, columns }: { label: string; options: readonly Choice<T>[]; value: T | null; onChange: (v: T) => void; columns?: number }) {
+  return (
+    <fieldset>
+      <legend className="mb-2 px-1 text-[13px] font-medium text-ink-muted">{label}</legend>
       <div className={cn(columns ? "grid gap-2" : "flex flex-wrap gap-2")} style={columns ? { gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` } : undefined}>
         {options.map((o) => {
           const selected = o.value === value;
@@ -126,34 +162,67 @@ export function Choices<T extends string>({
               aria-pressed={selected}
               onClick={() => onChange(o.value)}
               className={cn(
-                "flex min-h-12 flex-col items-center justify-center rounded-xl border-[1.5px] px-3 py-1.5 text-[15px] leading-tight font-bold transition-colors",
-                !columns && "min-h-11 rounded-full px-4",
-                selected ? "border-night bg-night text-white" : "border-input-border bg-page text-ink hover:border-ink-muted",
+                "h-12 rounded-full px-4 text-[15px]",
+                !columns && "h-11",
+                selected ? "border-[1.5px] border-ink bg-ink font-semibold text-white" : "border border-input-border bg-page font-medium text-ink hover:bg-panel",
               )}
             >
               {o.label}
-              {o.hint && <span className={cn("text-xs font-normal", selected ? "text-night-muted" : "text-ink-muted")}>{o.hint}</span>}
             </button>
           );
         })}
       </div>
+    </fieldset>
+  );
+}
+
+/** Two-way choice shown as radio pills, e.g. why stock is short. */
+export function RadioPills<T extends string>({ label, options, value, onChange }: { label: string; options: readonly (Choice<T> & { tone: "negative" | "brand" })[]; value: T; onChange: (v: T) => void }) {
+  return (
+    <div role="radiogroup" aria-label={label} className="grid grid-cols-2 gap-1.5">
+      {options.map((o) => {
+        const selected = o.value === value;
+        return (
+          <button
+            key={o.value}
+            type="button"
+            role="radio"
+            aria-checked={selected}
+            onClick={() => onChange(o.value)}
+            className={cn(
+              "h-11 rounded-full text-sm",
+              !selected && "border border-input-border bg-page font-medium text-ink",
+              selected && o.tone === "negative" && "border-[1.5px] border-negative bg-negative-tint font-semibold text-[#8A2F10]",
+              selected && o.tone === "brand" && "border-[1.5px] border-brand bg-brand-tint font-semibold text-brand-strong",
+            )}
+          >
+            {o.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
 
-export function Stepper({ value, onChange, min = 0, label }: { value: number; onChange: (v: number) => void; min?: number; label: string }) {
-  const btn = "flex size-11 shrink-0 items-center justify-center rounded-full border-[1.5px] border-input-border bg-page disabled:opacity-40";
+/** − value + with 44px buttons. "pill": white pill (on a grey panel). "box": bordered field. */
+export function Stepper({ value, onChange, min = 0, label, variant = "pill" }: { value: number; onChange: (v: number) => void; min?: number; label: string; variant?: "pill" | "box" }) {
+  const btn = "flex size-11 shrink-0 items-center justify-center rounded-full disabled:text-ink-faint";
   return (
-    <div className="flex items-center gap-1.5">
+    <div className={cn("flex items-center", variant === "pill" ? "h-11 rounded-full bg-page" : "h-12 justify-between rounded-xl border border-input-border bg-page px-0.5")}>
       <button type="button" className={btn} aria-label={`One less ${label}`} disabled={value <= min} onClick={() => onChange(Math.max(min, value - 1))}>
-        <Minus className="size-5" aria-hidden />
+        <Minus className="size-5" strokeWidth={STROKE} aria-hidden />
       </button>
-      <span className="min-w-10 text-center text-[22px] font-bold" aria-live="polite" aria-label={`${value} ${label}`}>
+      <span className={cn("text-center font-semibold", variant === "pill" ? "min-w-7 text-[17px]" : "text-lg")} aria-live="polite" aria-label={`${value} ${label}`}>
         {value}
       </span>
       <button type="button" className={btn} aria-label={`One more ${label}`} onClick={() => onChange(value + 1)}>
-        <Plus className="size-5" aria-hidden />
+        <Plus className="size-5" strokeWidth={STROKE} aria-hidden />
       </button>
     </div>
   );
+}
+
+/** @deprecated Temporary shim while screens move to Chips/ChoiceTiles. Removed at the end of the v2 redesign. */
+export function Choices<T extends string>(props: { label: string; options: readonly Choice<T>[]; value: T | null; onChange: (v: T) => void; columns?: number }) {
+  return <Chips {...props} />;
 }

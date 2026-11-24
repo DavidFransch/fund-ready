@@ -8,18 +8,20 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive:
-          "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40",
-        outline:
-          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+        default: "bg-brand text-white hover:bg-brand-strong",
+        destructive: "bg-negative text-white hover:bg-negative/90",
+        outline: "border border-input-border bg-page hover:bg-panel",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
-        spend: "bg-spend text-white hover:bg-spend-dark",
-        night: "bg-night text-white hover:bg-night/90",
+        /** Secondary on desktop: ink pill. */
+        ink: "bg-ink text-white hover:bg-ink/90",
+        /** Text-only tertiary action. */
+        tertiary: "bg-transparent text-ink hover:bg-panel",
+        /** @deprecated shim, removed at the end of the v2 redesign. */
+        night: "bg-ink text-white hover:bg-ink/90",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
@@ -28,8 +30,8 @@ const buttonVariants = cva(
         lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
         icon: "size-9",
         /** Touch-friendly sizes used across the app (≥44px). */
-        touch: "h-13 rounded-full px-5 text-base font-bold",
-        primary: "h-15 w-full rounded-full px-6 text-lg font-bold",
+        touch: "h-12 rounded-full px-5 text-[15px] font-semibold",
+        primary: "h-[54px] w-full rounded-full px-6 text-base font-semibold",
         "icon-xs": "size-6 rounded-md [&_svg:not([class*='size-'])]:size-3",
         "icon-sm": "size-8",
         "icon-lg": "size-10",

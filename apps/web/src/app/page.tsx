@@ -18,7 +18,7 @@ export default function HomePage() {
     if (!snapshot) return null;
     // A rolling week, so Monday morning (and a freshly reset demo) is never an empty card.
     const lastWeek = { from: addDays(snapshot.today, -6), to: snapshot.today };
-    return { h: home(snapshot, lastWeek), recent: activity(snapshot, 6), low: stockRows(snapshot).filter((r) => r.low).length };
+    return { h: home(snapshot, lastWeek), recent: activity(snapshot, { limit: 6 }), low: stockRows(snapshot).filter((r) => r.low).length };
   }, [snapshot]);
   if (!snapshot || !data) return <Loading />;
   const { h, recent, low } = data;

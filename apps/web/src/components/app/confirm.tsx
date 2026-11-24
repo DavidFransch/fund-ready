@@ -1,21 +1,25 @@
 "use client";
 
 import { positions, type Command, type JournalEntry } from "@app/ledger";
-import { Check, ChevronDown } from "lucide-react";
+import { BookOpen, ChevronDown, CircleMinus, Clock, Package, TrendingDown, TrendingUp, Wallet, type LucideIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { toast } from "sonner";
-import { whatWillHappen } from "@/books/describe";
+import { outcomes, saveLabel, summaryLine, type Outcome } from "@/books/describe";
 import { suppliers } from "@/books/selectors";
 import { useBooks } from "@/books/store";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
 import { JournalEntryTable } from "./journal-entry";
+import { Divider, Pill, STROKE } from "./screen";
 
 interface Pending {
   cmd: Command;
   entry: JournalEntry | null;
-  bullets: string[];
+  rows: Outcome[];
+  summary: string;
+  save: string;
 }
 
 function supplierOf(cmd: Command): string | undefined {
@@ -26,7 +30,7 @@ function supplierOf(cmd: Command): string | undefined {
 
 /**
  * Every action goes through here: build the command, show in plain words what will
- * happen (and the journal entry behind it), and only save on "Yes, save it".
+ * happen (and the journal entry behind it), and only save on "Save …".
  */
 export function useConfirmedAction({ after = "/" }: { after?: string | null } = {}) {
   const { snapshot, preview, execute } = useBooks();
@@ -43,7 +47,13 @@ export function useConfirmedAction({ after = "/" }: { after?: string | null } = 
     const pos = positions(snapshot.book.entries);
     const supplier = supplierOf(cmd)?.trim().toLowerCase();
     const owedToSupplier = supplier ? (suppliers(snapshot).find((s) => s.supplier.toLowerCase() === supplier)?.amount ?? 0) : 0;
-    setPending({ cmd, entry: p.result.entry, bullets: whatWillHappen(cmd, p.result.entry, snapshot.book, { cashBox: pos.cashBox, bank: pos.bank, owedToSupplier }) });
+    setPending({
+      cmd,
+      entry: p.result.entry,
+      rows: outcomes(cmd, p.result.entry, snapshot.book, { cashBox: pos.cashBox, bank: pos.bank, owedToSupplier }),
+      summary: summaryLine(cmd, snapshot.book),
+      save: saveLabel(cmd),
+    });
   }
 
   function confirm() {
@@ -66,47 +76,81 @@ export function useConfirmedAction({ after = "/" }: { after?: string | null } = 
   return { snapshot, check, sheet };
 }
 
+const ICONS: Record<Outcome["icon"], { icon: LucideIcon; tile: string }> = {
+  stock: { icon: Package, tile: "bg-brand-tint text-brand" },
+  owe: { icon: Clock, tile: "bg-negative-tint text-negative" },
+  money: { icon: Wallet, tile: "bg-brand-tint text-brand" },
+  cost: { icon: CircleMinus, tile: "bg-panel-strong text-ink-muted" },
+  profit: { icon: TrendingUp, tile: "bg-brand-tint text-brand" },
+  loss: { icon: TrendingDown, tile: "bg-negative-tint text-negative" },
+  neutral: { icon: Wallet, tile: "bg-panel-strong text-ink-muted" },
+};
+
 function ConfirmSheet({ pending, onCancel, onConfirm }: { pending: Pending | null; onCancel: () => void; onConfirm: () => void }) {
-  const [showBooks, setShowBooks] = useState(false);
+  const [showBooks, setShowBooks] = useState(true);
   return (
     <Sheet open={!!pending} onOpenChange={(open) => !open && onCancel()}>
-      <SheetContent side="bottom" className="mx-auto max-h-[90dvh] max-w-[440px] gap-3 overflow-y-auto rounded-t-3xl px-5 pb-6">
-        <SheetHeader className="px-0 pb-0">
-          <SheetTitle className="text-2xl font-bold">Is this right?</SheetTitle>
-          <SheetDescription className="text-[15px] text-ink-muted">This is what will happen when you save.</SheetDescription>
+      <SheetContent
+        side="bottom"
+        showCloseButton={false}
+        className="mx-auto max-h-[92dvh] max-w-[440px] gap-4 overflow-y-auto rounded-t-[28px] border-0 px-5 pt-2.5 pb-6 shadow-[0_-8px_32px_rgba(12,26,20,0.12)]"
+      >
+        <span aria-hidden className="h-1 w-10 self-center rounded-sm bg-input-border" />
+        <SheetHeader className="gap-1 p-0">
+          <SheetTitle className="text-[22px] font-semibold tracking-[-0.02em]">Check and save</SheetTitle>
+          <SheetDescription className="text-[15px] text-ink-muted">{pending?.summary}</SheetDescription>
         </SheetHeader>
-        <ul className="flex flex-col gap-2">
-          {pending?.bullets.map((b) => (
-            <li key={b} className="flex items-start gap-2.5 rounded-xl bg-brand-tint px-3.5 py-3 text-[15px] leading-snug text-brand-strong">
-              <Check className="mt-0.5 size-5 shrink-0" aria-hidden />
-              <span>{b}</span>
-            </li>
-          ))}
-        </ul>
+
+        <div className="flex flex-col rounded-2xl border border-divider">
+          {pending?.rows.map((o, i) => {
+            const { icon: Icon, tile } = ICONS[o.icon];
+            return (
+              <Fragment key={`${o.label}-${i}`}>
+                {i > 0 && <Divider className="ml-[62px]" />}
+                <div className="flex items-center gap-3 px-3.5 py-3">
+                  <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-[10px]", tile)}>
+                    <Icon className="size-[18px]" strokeWidth={STROKE} aria-hidden />
+                  </span>
+                  <span className="min-w-0 flex-1 text-[15px]">{o.label}</span>
+                  <span
+                    className={cn(
+                      "text-right text-[15px] whitespace-nowrap",
+                      o.tone === "muted" ? "font-medium text-ink-muted" : "font-semibold",
+                      o.tone === "positive" && "text-positive",
+                      o.tone === "negative" && "text-negative",
+                    )}
+                  >
+                    {o.value}
+                  </span>
+                </div>
+              </Fragment>
+            );
+          })}
+        </div>
+
         {pending?.entry && (
-          <div className="rounded-xl border border-divider bg-page">
+          <div className="flex flex-col rounded-2xl bg-panel">
             <button
               type="button"
               aria-expanded={showBooks}
               onClick={() => setShowBooks((v) => !v)}
-              className="flex min-h-12 w-full items-center justify-between px-3.5 text-left text-[15px] font-bold"
+              className="flex min-h-12 items-center gap-2.5 px-3.5 py-3 text-left"
             >
-              What your books record
-              <ChevronDown className={`size-5 transition-transform ${showBooks ? "rotate-180" : ""}`} aria-hidden />
+              <BookOpen className="size-[18px] text-brand" strokeWidth={STROKE} aria-hidden />
+              <span className="flex-1 text-sm font-semibold">What your books record</span>
+              <Pill>Balanced</Pill>
+              <ChevronDown className={cn("size-[18px] text-ink-muted transition-transform", showBooks && "rotate-180")} strokeWidth={STROKE} aria-hidden />
             </button>
-            {showBooks && (
-              <div className="px-3.5 pb-3">
-                <JournalEntryTable entry={pending.entry} />
-              </div>
-            )}
+            {showBooks && <JournalEntryTable entry={pending.entry} variant="sheet" className="px-3.5 pb-3.5" />}
           </div>
         )}
-        <div className="mt-1 flex flex-col gap-2">
+
+        <div className="flex flex-col gap-2">
           <Button size="primary" onClick={onConfirm}>
-            Yes, save it
+            {pending?.save ?? "Save"}
           </Button>
-          <Button size="touch" variant="outline" onClick={onCancel}>
-            Change something
+          <Button variant="tertiary" className="h-12 rounded-2xl text-[15px] font-medium" onClick={onCancel}>
+            Edit
           </Button>
         </div>
       </SheetContent>

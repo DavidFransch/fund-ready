@@ -1,42 +1,53 @@
-import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, ClipboardCheck } from "lucide-react";
+import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, Package } from "lucide-react";
 import Link from "next/link";
+import { Fragment } from "react";
 import type { ActivityRow } from "@/books/selectors";
-import { money, relativeDay } from "@/lib/format";
+import { money } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { Divider, Panel, STROKE } from "./screen";
 
-const ICON = { in: ArrowDownLeft, out: ArrowUpRight, move: ArrowLeftRight, none: ClipboardCheck } as const;
+const ICON = { in: ArrowDownLeft, out: ArrowUpRight, move: ArrowLeftRight, none: Package } as const;
 
-export function ActivityList({ rows, today }: { rows: ActivityRow[]; today: string }) {
+/** Signed, coloured amount: in = positive with "+", out = negative with "−", neutral = ink. */
+export function SignedMoney({ cents, direction, className }: { cents: number; direction: "in" | "out" | "move" | "none"; className?: string }) {
   return (
-    <ul className="flex flex-col divide-y divide-divider overflow-hidden rounded-[18px] border-[1.5px] border-divider bg-page">
-      {rows.map((r) => {
+    <span className={cn("text-[15px] font-semibold whitespace-nowrap", direction === "in" && "text-positive", direction === "out" && "text-negative", className)}>
+      {direction === "in" ? "+" : direction === "out" ? "−" : ""}
+      {money(cents)}
+    </span>
+  );
+}
+
+/** Rows of what happened, each linking to its journal entry. */
+export function ActivityList({ rows }: { rows: ActivityRow[]; /** @deprecated shim */ today?: string }) {
+  return (
+    <Panel className="flex flex-col py-0.5">
+      {rows.map((r, i) => {
         const Icon = ICON[r.direction];
         return (
-          <li key={r.id}>
-            <Link href={`/accountant?entry=${r.id}`} className="flex min-h-14 items-center gap-3 px-4 py-2.5 hover:bg-page">
+          <Fragment key={r.id}>
+            {i > 0 && <Divider inset />}
+            <Link href={`/accountant?entry=${r.id}`} className="flex min-h-16 items-center gap-3 rounded-[18px] px-3.5 py-3 hover:bg-panel-strong">
               <span
                 className={cn(
-                  "flex size-9 shrink-0 items-center justify-center rounded-full",
-                  r.direction === "in" ? "bg-brand-tint text-brand-strong" : r.direction === "out" ? "bg-negative-tint text-negative" : "bg-panel-strong text-ink-muted",
+                  "flex size-10 shrink-0 items-center justify-center rounded-xl",
+                  r.direction === "in" ? "bg-brand-tint text-brand" : r.direction === "out" ? "bg-negative-tint text-negative" : "bg-page text-ink",
                 )}
               >
-                <Icon className="size-[18px]" aria-hidden />
+                <Icon className="size-5" strokeWidth={STROKE} aria-hidden />
               </span>
-              <span className="flex min-w-0 flex-1 flex-col">
-                <span className="truncate text-[15px] font-bold">{r.title}</span>
-                <span className="text-[13px] text-ink-muted">
-                  {relativeDay(r.date, today)}
-                  {r.isUser && " · added in demo"}
+              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <span className="truncate text-[15px] font-medium">{r.title}</span>
+                <span className="truncate text-[13px] text-ink-muted">
+                  {r.detail}
+                  {r.time && ` · ${r.time}`}
                 </span>
               </span>
-              <span className={cn("text-[17px] font-bold tabular-nums", r.direction === "in" ? "text-brand" : r.direction === "out" ? "text-negative" : "text-ink-muted")}>
-                {r.direction === "in" ? "+" : r.direction === "out" ? "−" : ""}
-                {money(r.amount)}
-              </span>
+              <SignedMoney cents={r.amount} direction={r.direction} />
             </Link>
-          </li>
+          </Fragment>
         );
       })}
-    </ul>
+    </Panel>
   );
 }

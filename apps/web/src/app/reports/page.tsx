@@ -24,7 +24,7 @@ export default function ReportsPage() {
       range,
       sum: periodSummary(entries, range.from, range.to),
       days: kind === "day" ? [] : daily(entries, range.from, range.to),
-      dayActivity: kind === "day" ? activity(snapshot, Number.MAX_SAFE_INTEGER).filter((a) => a.date === range.from) : [],
+      dayActivity: kind === "day" ? activity(snapshot, { date: range.from }) : [],
     };
   }, [snapshot, kind, offset]);
   if (!snapshot || !data) return <Loading />;

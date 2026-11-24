@@ -2,41 +2,52 @@ import { formatRand, type JournalEntry } from "@app/ledger";
 import { accountName } from "@/books/selectors";
 import { cn } from "@/lib/utils";
 
-const amt = (c: number) => (c === 0 ? "" : formatRand(c).replace(/^R/, ""));
-
-/** One journal entry as an accountant reads it: account, debit, credit, totals. */
-export function JournalEntryTable({ entry, className }: { entry: JournalEntry; className?: string }) {
+/**
+ * One journal entry as an accountant reads it: mono code + account, debit, credit, totals.
+ * "sheet" shows an em dash in empty cells; "panel" leaves them blank.
+ */
+export function JournalEntryTable({ entry, variant = "panel", className }: { entry: JournalEntry; variant?: "sheet" | "panel"; className?: string }) {
   const debit = entry.lines.reduce((s, l) => s + l.debit, 0);
   const credit = entry.lines.reduce((s, l) => s + l.credit, 0);
+  const cell = (c: number) => (c === 0 ? (variant === "sheet" ? <span className="text-ink-faint">—</span> : "") : formatRand(c).replace(/^R/, ""));
+  const row = "grid grid-cols-[minmax(0,1fr)_76px_76px] gap-2";
   return (
-    <table className={cn("w-full border-collapse text-sm tabular-nums", className)}>
-      <thead>
-        <tr className="border-b border-divider text-left text-xs tracking-wide text-ink-muted uppercase">
-          <th className="py-1.5 pr-2 font-bold">Account</th>
-          <th className="w-24 py-1.5 text-right font-bold">Debit</th>
-          <th className="w-24 py-1.5 text-right font-bold">Credit</th>
-        </tr>
-      </thead>
-      <tbody>
-        {entry.lines.map((l, i) => (
-          <tr key={i} className="border-b border-divider/60">
-            <td className={cn("py-1.5 pr-2", l.credit > 0 && "pl-5")}>
-              <span className="mr-1.5 font-mono text-xs text-ink-muted">{l.account}</span>
+    <div role="table" aria-label="Journal entry" className={cn("flex flex-col text-[13px]", className)}>
+      <div role="row" className={cn(row, "border-b border-divider pb-2 font-medium text-ink-muted")}>
+        <span role="columnheader">Account</span>
+        <span role="columnheader" className="text-right">
+          Debit
+        </span>
+        <span role="columnheader" className="text-right">
+          Credit
+        </span>
+      </div>
+      {entry.lines.map((l, i) => (
+        <div role="row" key={i} className={cn(row, "border-b border-divider py-2.5")}>
+          <span role="cell" className="flex min-w-0 gap-2">
+            <span className="font-mono text-ink-muted">{l.account}</span>
+            <span className="min-w-0">
               {accountName(l.account)}
               {l.memo && <span className="block text-xs text-ink-muted">{l.memo}</span>}
-            </td>
-            <td className="py-1.5 text-right">{amt(l.debit)}</td>
-            <td className="py-1.5 text-right">{amt(l.credit)}</td>
-          </tr>
-        ))}
-      </tbody>
-      <tfoot>
-        <tr className="font-bold">
-          <td className="py-1.5 pr-2 text-xs text-ink-muted uppercase">{debit === credit ? "Balanced" : "Out of balance"}</td>
-          <td className="py-1.5 text-right">{amt(debit)}</td>
-          <td className="py-1.5 text-right">{amt(credit)}</td>
-        </tr>
-      </tfoot>
-    </table>
+            </span>
+          </span>
+          <span role="cell" className="text-right font-semibold">
+            {cell(l.debit)}
+          </span>
+          <span role="cell" className="text-right font-semibold">
+            {cell(l.credit)}
+          </span>
+        </div>
+      ))}
+      <div role="row" className={cn(row, "pt-2.5 font-semibold")}>
+        <span role="cell">Total</span>
+        <span role="cell" className="text-right">
+          {formatRand(debit).replace(/^R/, "")}
+        </span>
+        <span role="cell" className="text-right">
+          {formatRand(credit).replace(/^R/, "")}
+        </span>
+      </div>
+    </div>
   );
 }

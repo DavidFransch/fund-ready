@@ -1,8 +1,9 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { formatDay, periodRange, type PeriodKind, type PeriodRange } from "@/books/dates";
-import { cn } from "@/lib/utils";
+import { formatDay, periodRange, type PeriodKind } from "@/books/dates";
+import { Segmented } from "./inputs";
+import { STROKE } from "./screen";
 
 const KINDS: { value: PeriodKind; label: string }[] = [
   { value: "day", label: "Day" },
@@ -10,45 +11,27 @@ const KINDS: { value: PeriodKind; label: string }[] = [
   { value: "month", label: "Month" },
 ];
 
-/** Day / week / month, with arrows to step back to earlier periods. */
-export function PeriodPicker({
-  today,
-  kind,
-  offset,
-  onChange,
-}: {
-  today: string;
-  kind: PeriodKind;
-  offset: number;
-  onChange: (kind: PeriodKind, offset: number) => void;
-}) {
-  const range: PeriodRange = periodRange(kind, today, offset);
-  const arrow = "flex size-11 items-center justify-center rounded-full border-[1.5px] border-input-border bg-page disabled:opacity-30";
+/** Day / week / month, with a navigator to step back (next is disabled for the current period). */
+export function PeriodPicker({ today, kind, offset, onChange }: { today: string; kind: PeriodKind; offset: number; onChange: (kind: PeriodKind, offset: number) => void }) {
+  const range = periodRange(kind, today, offset);
+  const arrow = "flex size-11 items-center justify-center rounded-full text-ink hover:bg-panel disabled:text-[#C4C9C6] disabled:hover:bg-transparent";
+  const dates =
+    kind === "day"
+      ? formatDay(range.from, { weekday: "long", day: "numeric", month: "short" })
+      : `${formatDay(range.from, { day: "numeric", month: "short" })} – ${formatDay(range.to, { day: "numeric", month: "short" })}`;
   return (
-    <div className="flex flex-col gap-2.5">
-      <div role="group" aria-label="Show" className="grid grid-cols-3 gap-1 rounded-full bg-panel-strong p-1">
-        {KINDS.map((k) => (
-          <button
-            key={k.value}
-            type="button"
-            aria-pressed={k.value === kind}
-            onClick={() => onChange(k.value, 0)}
-            className={cn("h-11 rounded-full text-[15px] font-bold", k.value === kind ? "bg-page text-ink shadow-sm" : "text-ink-muted")}
-          >
-            {k.label}
-          </button>
-        ))}
-      </div>
-      <div className="flex items-center justify-between gap-2">
-        <button type="button" className={arrow} aria-label="Earlier" onClick={() => onChange(kind, offset - 1)}>
-          <ChevronLeft className="size-5" aria-hidden />
+    <div className="flex flex-col gap-3.5">
+      <Segmented label="Period" options={KINDS} value={kind} onChange={(k) => onChange(k, 0)} />
+      <div className="-mx-2 flex items-center justify-between">
+        <button type="button" className={arrow} aria-label="Previous period" onClick={() => onChange(kind, offset - 1)}>
+          <ChevronLeft className="size-[22px]" strokeWidth={STROKE} aria-hidden />
         </button>
-        <span className="flex flex-col items-center">
-          <span className="text-xl font-bold">{range.label}</span>
-          {range.from !== range.to && <span className="text-[13px] text-ink-muted">{`${formatDay(range.from)} – ${formatDay(range.to)}`}</span>}
+        <span className="flex flex-col items-center gap-0.5">
+          <span className="text-[15px] font-semibold">{range.label}</span>
+          <span className="text-[13px] text-ink-muted">{dates}</span>
         </span>
-        <button type="button" className={arrow} aria-label="Later" disabled={offset >= 0} onClick={() => onChange(kind, offset + 1)}>
-          <ChevronRight className="size-5" aria-hidden />
+        <button type="button" className={arrow} aria-label="Next period" disabled={offset >= 0} onClick={() => onChange(kind, offset + 1)}>
+          <ChevronRight className="size-[22px]" strokeWidth={STROKE} aria-hidden />
         </button>
       </div>
     </div>

@@ -11,7 +11,7 @@ import {
   type IsoDate,
   type JournalEntry,
 } from "@app/ledger";
-import { daysIn, type PeriodRange } from "./dates";
+import { daysIn } from "./dates";
 import { entryTotal, titleFor } from "./describe";
 import type { BooksSnapshot } from "./store";
 
@@ -27,7 +27,7 @@ export function chronological(entries: readonly JournalEntry[]): JournalEntry[] 
 /** Starting balances are not money earned or spent, so they stay out of money in and out. */
 const trading = (entries: readonly JournalEntry[]) => entries.filter((e) => e.source.type !== "opening_balance");
 
-export function home(s: BooksSnapshot, week: PeriodRange) {
+export function home(s: BooksSnapshot, week: { from: IsoDate; to: IsoDate }) {
   const flow = cashFlowSummary(trading(s.book.entries), { from: week.from, to: week.to });
   return { ...flow, ...positions(s.book.entries) };
 }

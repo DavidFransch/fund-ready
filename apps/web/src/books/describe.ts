@@ -113,7 +113,10 @@ export function whatWillHappen(cmd: Command, entry: JournalEntry | null, book: B
     }
     case "payment_made":
       out.push(moneyLine(cmd.amount, cmd.from, "out"));
-      out.push(`You will owe ${cmd.supplier} ${R(Math.max(0, (before.owedToSupplier ?? 0) - cmd.amount))}.`);
+      {
+        const left = (before.owedToSupplier ?? 0) - cmd.amount;
+        out.push(left > 0 ? `You will still owe ${cmd.supplier} ${R(left)}.` : `You won't owe ${cmd.supplier} anything.`);
+      }
       break;
     case "stock_count": {
       for (const c of cmd.counts) {

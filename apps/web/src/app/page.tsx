@@ -3,7 +3,7 @@
 import { Banknote, FileText, Landmark, Package, Receipt, Wallet } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
-import { periodRange } from "@/books/dates";
+import { addDays } from "@app/ledger";
 import { BUSINESS } from "@/books/seed";
 import { activity, home, stockRows } from "@/books/selectors";
 import { useBooks } from "@/books/store";
@@ -16,8 +16,9 @@ export default function HomePage() {
   const { snapshot } = useBooks();
   const data = useMemo(() => {
     if (!snapshot) return null;
-    const week = periodRange("week", snapshot.today);
-    return { week, h: home(snapshot, week), recent: activity(snapshot, 6), low: stockRows(snapshot).filter((r) => r.low).length };
+    // A rolling week, so Monday morning (and a freshly reset demo) is never an empty card.
+    const lastWeek = { from: addDays(snapshot.today, -6), to: snapshot.today };
+    return { h: home(snapshot, lastWeek), recent: activity(snapshot, 6), low: stockRows(snapshot).filter((r) => r.low).length };
   }, [snapshot]);
   if (!snapshot || !data) return <Loading />;
   const { h, recent, low } = data;
@@ -45,7 +46,7 @@ export default function HomePage() {
       )}
 
       <NightCard className="mt-2 flex flex-col gap-3.5">
-        <span className="text-[15px] text-night-muted">This week</span>
+        <span className="text-[15px] text-night-muted">Last 7 days</span>
         <div className="grid grid-cols-3 gap-2">
           <Stat label="Money in" value={money(h.moneyIn)} tone="text-brand-on-dark" />
           <Stat label="Money out" value={money(h.moneyOut)} tone="text-spend-on-dark" />

@@ -69,7 +69,11 @@ export default function HomePage() {
         </div>
         {(h.owedToSuppliers > 0 || h.owedToYou > 0) && (
           <div className="flex flex-col gap-0.5 text-sm text-night-muted">
-            {h.owedToSuppliers > 0 && <span>You owe suppliers {money(h.owedToSuppliers)}</span>}
+            {h.owedToSuppliers > 0 && (
+              <Link href="/suppliers" className="underline underline-offset-4 hover:text-white">
+                You owe suppliers {money(h.owedToSuppliers)}
+              </Link>
+            )}
             {h.owedToYou > 0 && <span>Customers owe you {money(h.owedToYou)}</span>}
           </div>
         )}

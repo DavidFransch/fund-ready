@@ -76,7 +76,7 @@ export default function PayPage() {
       {mode === "supplier" ? (
         <>
           <Button variant="outline" size="touch" onClick={() => setMode("expense")}>
-            Record something new I paid for instead
+            Something else I paid for
           </Button>
           <SupplierPayForm snapshot={snapshot} initial={payee} onCheck={check} />
         </>

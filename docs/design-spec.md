@@ -86,6 +86,43 @@ Contrast: all text/background pairs above meet WCAG AA at their used sizes.
 - **Logo**: 40px brand rounded square with two horizontal bars (white over lime) = balance.
   Wordmark "FundReady" in Geist 600 where needed.
 
+## Responsive layout (phone, tablet, desktop)
+
+One app, three layouts. The canvas shows the phone layout for each screen; desktop uses the
+same components, tokens and copy, rearranged. The demo will be presented on a laptop, so the
+desktop layout must look as finished as the phone one.
+
+| Width | Navigation | Content |
+|---|---|---|
+| < 768px (phone) | Bottom nav (5 tabs) | Single column, 16px gutters, sticky bottom action button |
+| 768–1023px (tablet) | Bottom nav | Single column, max-width 640px, centred |
+| ≥ 1024px (desktop) | Left sidebar 248px: logo + business switcher, Home, Stock, Petty cash, Reports, Books, then Reset demo at the bottom (same style as the accountant view sidebar). No bottom nav | Main area with 32px padding, content max-width 1120px |
+
+Desktop screen layouts:
+- **Home**: page header row (business name, date, primary "New sale" pill + "Buy stock" outline
+  pill on the right). Grid `minmax(0,1.4fr) minmax(0,1fr)`: left = dark balance card, then the
+  two owed tiles side by side, then the activity list; right = quick actions as a 2×2 grid of
+  larger tiles, then a small "This week" sales chart panel.
+- **Buy stock, Sell, Count, Expense, Top up / Bank it**: the form sits in a centred column
+  (max-width 560px) on desktop, with the page title above. The sticky bottom button becomes a
+  normal right-aligned button row at the end of the form (primary + "Cancel").
+- **Check and save**: phone = bottom sheet; desktop = centred dialog, 520px wide, same content,
+  scrim behind.
+- **Petty cash**: grid `minmax(0,1fr) minmax(0,1.6fr)`: left = balance panel with Top up / Bank it;
+  right = movements as a table (Time | What | In | Out | Balance), grouped by day.
+- **Stock**: table on desktop (Item | On hand | Avg cost | Value | Reorder at | status),
+  "Count stock" and "Buy stock" pills in the header.
+- **Reports**: header with the Day/Week/Month control and the period navigator on one row;
+  three KPI tiles in a row (Sales, Expenses, Profit); then grid: wide sales chart panel (left,
+  ~2/3) + breakdown panel (right, ~1/3).
+- **Books (accountant view)**: as already designed (sidebar list of sections inside the page,
+  table + entry detail panel). On phone: the section list becomes tabs, the entry detail opens
+  as a full-screen sheet.
+
+Rules: build mobile-first with Tailwind breakpoints (`md:` 768, `lg:` 1024). No horizontal page
+scroll at any width; wide tables sit in an `overflow-x-auto` panel on phone. Test every screen
+at 390, 768, 1280 and 1440px.
+
 ## Screens (behaviour notes)
 
 1. **Home**: business name + date, notifications button; dark balance card; four quick actions

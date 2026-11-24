@@ -83,7 +83,7 @@ export default function PayPage() {
       ) : (
         <>
           {data.owed.map((o) => (
-            <div key={o.supplier} className="flex items-center gap-3 rounded-2xl border-[1.5px] border-sun-line bg-sun-soft px-4 py-3 text-sun-ink">
+            <div key={o.supplier} className="flex items-center gap-3 rounded-2xl border-[1.5px] border-brand bg-brand-tint px-4 py-3 text-brand-strong">
               <Truck className="size-5 shrink-0" aria-hidden />
               <span className="flex-1 text-[15px] leading-snug">
                 You owe <b>{o.supplier}</b> {money(o.amount)}

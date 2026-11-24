@@ -58,11 +58,11 @@ export default function CountPage() {
           const value = counted[r.id] ?? r.qty;
           const diff = value - r.qty;
           return (
-            <li key={r.id} className="flex flex-col gap-2.5 rounded-2xl border-[1.5px] border-line bg-card py-2.5 pr-2.5 pl-4">
+            <li key={r.id} className="flex flex-col gap-2.5 rounded-2xl border-[1.5px] border-divider bg-page py-2.5 pr-2.5 pl-4">
               <div className="flex items-center gap-2">
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span className="text-base font-bold">{r.name}</span>
-                  <span className={diff === 0 ? "text-[13px] font-bold text-brand" : diff < 0 ? "text-[13px] font-bold text-spend" : "text-[13px] font-bold text-ink-soft"}>
+                  <span className={diff === 0 ? "text-[13px] font-bold text-brand" : diff < 0 ? "text-[13px] font-bold text-negative" : "text-[13px] font-bold text-ink-muted"}>
                     {diff === 0 ? `Matches · expected ${r.qty}` : diff < 0 ? `Expected ${r.qty} · ${-diff} missing` : `Expected ${r.qty} · ${diff} extra`}
                   </span>
                 </span>
@@ -80,7 +80,7 @@ export default function CountPage() {
 
       <NightCard className="flex flex-col gap-1.5 p-4">
         <span className="text-sm text-night-muted">{changed.length === 1 ? "1 item is different" : `${changed.length} items are different`}</span>
-        <span className="font-display text-[26px] font-bold">{headline}</span>
+        <span className="text-[26px] font-bold">{headline}</span>
         <span className="text-sm leading-snug text-night-muted">{note}</span>
       </NightCard>
 

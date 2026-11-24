@@ -90,7 +90,7 @@ function EntryCard({ entry, title, today, highlight, isDemo }: { entry: JournalE
   return (
     <li
       id={`entry-${entry.id}`}
-      className={cn("flex flex-col gap-2 rounded-2xl border-[1.5px] bg-card p-4", highlight ? "border-sun ring-4 ring-sun/30" : "border-line")}
+      className={cn("flex flex-col gap-2 rounded-2xl border-[1.5px] bg-page p-4", highlight ? "border-accent ring-4 ring-accent/30" : "border-divider")}
     >
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <span className="text-[15px] font-bold">{title}</span>
@@ -99,8 +99,8 @@ function EntryCard({ entry, title, today, highlight, isDemo }: { entry: JournalE
         </span>
       </div>
       <div className="flex flex-wrap items-center gap-1.5 text-xs">
-        <span className="rounded-full bg-track px-2 py-0.5 font-bold text-ink-soft">{SOURCE_LABEL[entry.source.type]}</span>
-        {isDemo && <span className="rounded-full bg-sun-soft px-2 py-0.5 font-bold text-sun-ink">Added in demo</span>}
+        <span className="rounded-full bg-panel-strong px-2 py-0.5 font-bold text-ink-muted">{SOURCE_LABEL[entry.source.type]}</span>
+        {isDemo && <span className="rounded-full bg-brand-tint px-2 py-0.5 font-bold text-brand-strong">Added in demo</span>}
         <span className="text-ink-muted">Memo: {entry.memo}</span>
       </div>
       <JournalEntryTable entry={entry} />

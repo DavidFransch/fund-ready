@@ -8,16 +8,16 @@ const ICON = { in: ArrowDownLeft, out: ArrowUpRight, move: ArrowLeftRight, none:
 
 export function ActivityList({ rows, today }: { rows: ActivityRow[]; today: string }) {
   return (
-    <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-[18px] border-[1.5px] border-line bg-card">
+    <ul className="flex flex-col divide-y divide-divider overflow-hidden rounded-[18px] border-[1.5px] border-divider bg-page">
       {rows.map((r) => {
         const Icon = ICON[r.direction];
         return (
           <li key={r.id}>
-            <Link href={`/accountant?entry=${r.id}`} className="flex min-h-14 items-center gap-3 px-4 py-2.5 hover:bg-paper">
+            <Link href={`/accountant?entry=${r.id}`} className="flex min-h-14 items-center gap-3 px-4 py-2.5 hover:bg-page">
               <span
                 className={cn(
                   "flex size-9 shrink-0 items-center justify-center rounded-full",
-                  r.direction === "in" ? "bg-brand-soft text-brand-dark" : r.direction === "out" ? "bg-spend-soft text-spend-dark" : "bg-track text-ink-soft",
+                  r.direction === "in" ? "bg-brand-tint text-brand-strong" : r.direction === "out" ? "bg-negative-tint text-negative" : "bg-panel-strong text-ink-muted",
                 )}
               >
                 <Icon className="size-[18px]" aria-hidden />
@@ -29,7 +29,7 @@ export function ActivityList({ rows, today }: { rows: ActivityRow[]; today: stri
                   {r.isUser && " · added in demo"}
                 </span>
               </span>
-              <span className={cn("font-display text-[17px] font-bold tabular-nums", r.direction === "in" ? "text-brand" : r.direction === "out" ? "text-spend" : "text-ink-soft")}>
+              <span className={cn("text-[17px] font-bold tabular-nums", r.direction === "in" ? "text-brand" : r.direction === "out" ? "text-negative" : "text-ink-muted")}>
                 {r.direction === "in" ? "+" : r.direction === "out" ? "−" : ""}
                 {money(r.amount)}
               </span>

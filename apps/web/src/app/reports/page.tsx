@@ -47,9 +47,9 @@ export default function ReportsPage() {
 
       <NightCard className="flex flex-col gap-3">
         <div className="grid grid-cols-3 gap-2">
-          <Big label="Sales" value={sum.sales} tone="text-brand-on-dark" />
-          <Big label="Costs" value={sum.costOfSales + sum.expenses} tone="text-spend-on-dark" />
-          <Big label={sum.netProfit < 0 ? "Loss" : "Profit"} value={Math.abs(sum.netProfit)} tone="text-sun" />
+          <Big label="Sales" value={sum.sales} tone="text-accent" />
+          <Big label="Costs" value={sum.costOfSales + sum.expenses} tone="text-night-muted" />
+          <Big label={sum.netProfit < 0 ? "Loss" : "Profit"} value={Math.abs(sum.netProfit)} tone="text-accent" />
         </div>
         <p className="border-t border-night-line pt-3 text-sm leading-snug text-night-muted">
           {empty ? "Nothing recorded yet for this period." : `Money in ${money(sum.moneyIn)} · money out ${money(sum.moneyOut)}. Profit only counts stock once it is sold.`}
@@ -74,7 +74,7 @@ export default function ReportsPage() {
                 <span className="size-2.5 rounded-sm bg-brand" aria-hidden /> Sales
               </span>
               <span className="flex items-center gap-1">
-                <span className="size-2.5 rounded-sm bg-spend" aria-hidden /> Costs
+                <span className="size-2.5 rounded-sm bg-negative" aria-hidden /> Costs
               </span>
             </span>
           </div>
@@ -83,7 +83,7 @@ export default function ReportsPage() {
               <div key={d.date} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1" title={`${formatDay(d.date)}: sales ${money(d.sales)}, costs ${money(d.costs)}`}>
                 <div className="flex h-full w-full items-end justify-center gap-px">
                   <span className="w-1/2 max-w-3 rounded-t-sm bg-brand" style={{ height: `${(d.sales / maxDay) * 100}%` }} />
-                  <span className="w-1/2 max-w-3 rounded-t-sm bg-spend" style={{ height: `${(d.costs / maxDay) * 100}%` }} />
+                  <span className="w-1/2 max-w-3 rounded-t-sm bg-negative" style={{ height: `${(d.costs / maxDay) * 100}%` }} />
                 </div>
                 {kind === "week" && <span className="text-[11px] text-ink-muted">{formatDay(d.date, { weekday: "short" })}</span>}
               </div>
@@ -111,8 +111,8 @@ export default function ReportsPage() {
                 <span>{l.name}</span>
                 <span className="font-bold tabular-nums">{money(l.amount)}</span>
               </div>
-              <div className="h-2 rounded-full bg-track">
-                <div className="h-2 rounded-full bg-spend" style={{ width: `${(l.amount / maxExpense) * 100}%` }} />
+              <div className="h-2 rounded-full bg-panel-strong">
+                <div className="h-2 rounded-full bg-negative" style={{ width: `${(l.amount / maxExpense) * 100}%` }} />
               </div>
             </div>
           ))}
@@ -133,14 +133,14 @@ function Big({ label, value, tone }: { label: string; value: number; tone: strin
   return (
     <div className="flex min-w-0 flex-col gap-0.5">
       <span className={cn("text-[13px]", tone)}>{label}</span>
-      <span className="truncate font-display text-[22px] font-bold tabular-nums">{money(value)}</span>
+      <span className="truncate text-[22px] font-bold tabular-nums">{money(value)}</span>
     </div>
   );
 }
 
 function Row({ label, value, sub, strong }: { label: string; value: number; sub?: boolean; strong?: boolean }) {
   return (
-    <div className={cn("flex justify-between", strong && "border-t border-line pt-2 font-bold", sub && "text-ink-soft")}>
+    <div className={cn("flex justify-between", strong && "border-t border-divider pt-2 font-bold", sub && "text-ink-muted")}>
       <span>{label}</span>
       <span className="tabular-nums">{value < 0 ? `−${money(-value)}` : money(value)}</span>
     </div>

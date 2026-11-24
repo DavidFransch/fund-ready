@@ -1,6 +1,5 @@
-import "@fontsource/atkinson-hyperlegible/400.css";
-import "@fontsource/atkinson-hyperlegible/700.css";
-import "@fontsource-variable/bricolage-grotesque";
+import "@fontsource-variable/geist";
+import "@fontsource-variable/geist-mono";
 import type { Metadata, Viewport } from "next";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
@@ -11,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#17704A",
+  themeColor: "#0F5D43",
   width: "device-width",
   initialScale: 1,
 };

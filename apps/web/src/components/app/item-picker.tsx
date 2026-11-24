@@ -32,12 +32,12 @@ export function ItemPicker({
               onClick={() => onChange(r.id)}
               className={cn(
                 "flex min-h-13 items-center justify-between gap-3 rounded-xl border-[1.5px] px-3.5 py-2 text-left",
-                selected ? "border-night bg-night text-white" : "border-line-strong bg-card hover:border-ink-muted",
+                selected ? "border-night bg-night text-white" : "border-input-border bg-page hover:border-ink-muted",
               )}
             >
               <span className="flex flex-col">
                 <span className="text-[15px] font-bold">{r.name}</span>
-                <span className={cn("text-[13px]", selected ? "text-night-muted" : r.low ? "font-bold text-spend" : "text-ink-muted")}>
+                <span className={cn("text-[13px]", selected ? "text-night-muted" : r.low ? "font-bold text-negative" : "text-ink-muted")}>
                   {r.qty} {r.unit} on hand{r.low ? " · running low" : ""}
                 </span>
               </span>

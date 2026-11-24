@@ -11,7 +11,7 @@ export function JournalEntryTable({ entry, className }: { entry: JournalEntry; c
   return (
     <table className={cn("w-full border-collapse text-sm tabular-nums", className)}>
       <thead>
-        <tr className="border-b border-line text-left text-xs tracking-wide text-ink-muted uppercase">
+        <tr className="border-b border-divider text-left text-xs tracking-wide text-ink-muted uppercase">
           <th className="py-1.5 pr-2 font-bold">Account</th>
           <th className="w-24 py-1.5 text-right font-bold">Debit</th>
           <th className="w-24 py-1.5 text-right font-bold">Credit</th>
@@ -19,7 +19,7 @@ export function JournalEntryTable({ entry, className }: { entry: JournalEntry; c
       </thead>
       <tbody>
         {entry.lines.map((l, i) => (
-          <tr key={i} className="border-b border-line/60">
+          <tr key={i} className="border-b border-divider/60">
             <td className={cn("py-1.5 pr-2", l.credit > 0 && "pl-5")}>
               <span className="mr-1.5 font-mono text-xs text-ink-muted">{l.account}</span>
               {accountName(l.account)}

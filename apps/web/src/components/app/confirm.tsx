@@ -72,19 +72,19 @@ function ConfirmSheet({ pending, onCancel, onConfirm }: { pending: Pending | nul
     <Sheet open={!!pending} onOpenChange={(open) => !open && onCancel()}>
       <SheetContent side="bottom" className="mx-auto max-h-[90dvh] max-w-[440px] gap-3 overflow-y-auto rounded-t-3xl px-5 pb-6">
         <SheetHeader className="px-0 pb-0">
-          <SheetTitle className="font-display text-2xl font-bold">Is this right?</SheetTitle>
+          <SheetTitle className="text-2xl font-bold">Is this right?</SheetTitle>
           <SheetDescription className="text-[15px] text-ink-muted">This is what will happen when you save.</SheetDescription>
         </SheetHeader>
         <ul className="flex flex-col gap-2">
           {pending?.bullets.map((b) => (
-            <li key={b} className="flex items-start gap-2.5 rounded-xl bg-brand-soft px-3.5 py-3 text-[15px] leading-snug text-brand-dark">
+            <li key={b} className="flex items-start gap-2.5 rounded-xl bg-brand-tint px-3.5 py-3 text-[15px] leading-snug text-brand-strong">
               <Check className="mt-0.5 size-5 shrink-0" aria-hidden />
               <span>{b}</span>
             </li>
           ))}
         </ul>
         {pending?.entry && (
-          <div className="rounded-xl border border-line bg-card">
+          <div className="rounded-xl border border-divider bg-page">
             <button
               type="button"
               aria-expanded={showBooks}

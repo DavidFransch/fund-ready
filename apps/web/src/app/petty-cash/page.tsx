@@ -37,14 +37,14 @@ export default function PettyCashPage() {
     <Screen title="Petty cash" back="/" nav>
       <NightCard className="flex flex-col gap-3">
         <span className="text-[15px] text-night-muted">In the cash box now</span>
-        <span className="font-display text-4xl font-bold">{money(balance)}</span>
+        <span className="text-4xl font-bold">{money(balance)}</span>
         <div className="grid grid-cols-2 gap-2 border-t border-night-line pt-3 text-sm">
           <span className="flex flex-col">
-            <span className="text-brand-on-dark">In today</span>
+            <span className="text-accent">In today</span>
             <span className="text-[17px] font-bold">{money(todayIn)}</span>
           </span>
           <span className="flex flex-col">
-            <span className="text-spend-on-dark">Out today</span>
+            <span className="text-night-muted">Out today</span>
             <span className="text-[17px] font-bold">{money(todayOut)}</span>
           </span>
         </div>
@@ -70,7 +70,7 @@ export default function PettyCashPage() {
       )}
 
       <SectionTitle>Every rand in and out</SectionTitle>
-      <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-[18px] border-[1.5px] border-line bg-card">
+      <ul className="flex flex-col divide-y divide-divider overflow-hidden rounded-[18px] border-[1.5px] border-divider bg-page">
         {rows.slice(0, limit).map((r) => (
           <li key={r.id} className="flex items-center gap-3 px-4 py-2.5">
             <span className="flex min-w-0 flex-1 flex-col">
@@ -81,7 +81,7 @@ export default function PettyCashPage() {
               </span>
             </span>
             <span className="flex flex-col items-end">
-              <span className={cn("font-display text-[17px] font-bold tabular-nums", r.amount > 0 ? "text-brand" : "text-spend")}>
+              <span className={cn("text-[17px] font-bold tabular-nums", r.amount > 0 ? "text-brand" : "text-negative")}>
                 {r.amount > 0 ? "+" : "−"}
                 {money(Math.abs(r.amount))}
               </span>

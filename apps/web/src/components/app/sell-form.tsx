@@ -70,7 +70,7 @@ export function SellForm({ invoice = false }: { invoice?: boolean }) {
             <div className="flex items-center justify-between gap-3">
               <span className="flex flex-col">
                 <span className="text-sm text-ink-muted">How many {item.unit}?</span>
-                <span className={qty > item.qty ? "text-[13px] font-bold text-spend" : "text-[13px] font-bold text-brand"}>
+                <span className={qty > item.qty ? "text-[13px] font-bold text-negative" : "text-[13px] font-bold text-brand"}>
                   {qty > item.qty ? `You only have ${item.qty} on record` : `Stock goes ${item.qty} → ${item.qty - qty}`}
                 </span>
               </span>
@@ -86,7 +86,7 @@ export function SellForm({ invoice = false }: { invoice?: boolean }) {
       <div className="mt-auto flex flex-col gap-1.5 pt-2">
         {total !== null && (
           <p className="text-center text-[15px]">
-            Total <span className="font-display text-xl font-bold">{money(total)}</span>
+            Total <span className="text-xl font-bold">{money(total)}</span>
           </p>
         )}
         {missing && <p className="text-center text-sm text-ink-muted">{missing}</p>}

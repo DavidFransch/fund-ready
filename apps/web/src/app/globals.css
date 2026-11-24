@@ -1,60 +1,60 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* Design tokens from the canvas mockup. One place to restyle the app. */
+/* FundReady v2 design tokens (docs/design-spec.md). One place to restyle the app. */
 @theme {
-  --font-sans: "Atkinson Hyperlegible", system-ui, sans-serif;
-  --font-display: "Bricolage Grotesque Variable", "Atkinson Hyperlegible", sans-serif;
+  --font-sans: "Geist Variable", system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, monospace;
 
-  --color-ink: #14211b;
-  --color-ink-muted: #56635c;
-  --color-ink-soft: #3f4b45;
-  --color-paper: #f3f5f2;
-  --color-card: #ffffff;
-  --color-line: #dce2dd;
-  --color-line-strong: #c9d2cc;
-  --color-track: #e6eae7;
+  --color-page: #ffffff;
+  --color-panel: #f4f5f4;
+  --color-panel-strong: #f1f2f1;
+  --color-divider: #e7e9e8;
+  --color-hairline: #eceeed;
+  --color-input-border: #dce3df;
 
-  --color-brand: #17704a;
-  --color-brand-dark: #0e4a30;
-  --color-brand-soft: #e3f1e9;
-  --color-brand-line: #b9dcc8;
-  --color-brand-on-dark: #9fe0bc;
+  --color-ink: #111412;
+  --color-ink-muted: #5f6763;
+  --color-ink-faint: #8a918d;
 
-  --color-spend: #a8421a;
-  --color-spend-dark: #7a2f12;
-  --color-spend-soft: #f8e8df;
-  --color-spend-line: #ebc6b2;
-  --color-spend-on-dark: #f6b79a;
+  --color-brand: #0f5d43;
+  --color-brand-strong: #0a4231;
+  --color-brand-tint: #e8f3ee;
+  /* Selected choice tile and selected journal row. */
+  --color-brand-wash: #f2f8f5;
 
-  --color-sun: #f2c230;
-  --color-sun-soft: #fff6d9;
-  --color-sun-line: #ebd58a;
-  --color-sun-ink: #4a3b05;
+  --color-positive: #12764f;
+  --color-negative: #b4401a;
+  --color-negative-tint: #fbede6;
 
-  --color-night: #14211b;
-  --color-night-muted: #c7d3cc;
-  --color-night-line: #2f4038;
+  --color-night: #0e1f18;
+  --color-night-raised: #17302a;
+  --color-night-line: #23392f;
+  --color-night-muted: #a9bdb4;
+  --color-accent: #c6f36b;
+
+  /* Inactive chart bars. */
+  --color-chart-muted: #cdd3d0;
 }
 
 /* shadcn/ui variables, mapped onto the tokens above so components match the design. */
 @theme inline {
-  --color-background: var(--color-paper);
+  --color-background: var(--color-page);
   --color-foreground: var(--color-ink);
+  --color-card: var(--color-page);
   --color-card-foreground: var(--color-ink);
-  --color-popover: var(--color-card);
+  --color-popover: var(--color-page);
   --color-popover-foreground: var(--color-ink);
   --color-primary: var(--color-brand);
   --color-primary-foreground: #ffffff;
-  --color-secondary: var(--color-track);
+  --color-secondary: var(--color-panel);
   --color-secondary-foreground: var(--color-ink);
-  --color-muted: var(--color-track);
+  --color-muted: var(--color-panel);
   --color-muted-foreground: var(--color-ink-muted);
-  --color-accent: var(--color-brand-soft);
-  --color-accent-foreground: var(--color-brand-dark);
-  --color-destructive: var(--color-spend);
-  --color-border: var(--color-line);
-  --color-input: var(--color-line-strong);
+  --color-accent-foreground: var(--color-brand-strong);
+  --color-destructive: var(--color-negative);
+  --color-border: var(--color-divider);
+  --color-input: var(--color-input-border);
   --color-ring: var(--color-brand);
   --radius: 12px;
   --radius-sm: calc(var(--radius) - 4px);
@@ -64,11 +64,19 @@
 }
 
 * {
-  border-color: var(--color-line);
+  border-color: var(--color-divider);
 }
 
 body {
-  background: var(--color-paper);
+  background: var(--color-page);
   color: var(--color-ink);
   font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.02em;
 }

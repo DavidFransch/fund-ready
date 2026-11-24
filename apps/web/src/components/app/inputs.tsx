@@ -44,12 +44,12 @@ export function MoneyInput({
       </label>
       <div
         className={cn(
-          "flex items-center rounded-xl border-[1.5px] border-line-strong bg-[#F9FBF9] px-3 focus-within:border-brand",
+          "flex items-center rounded-xl border-[1.5px] border-input-border bg-[#F9FBF9] px-3 focus-within:border-brand",
           big ? "h-14" : "h-12",
-          invalid && "border-spend",
+          invalid && "border-negative",
         )}
       >
-        <span className={cn("font-display font-bold text-ink-muted", big ? "text-3xl" : "text-xl")}>R</span>
+        <span className={cn("font-bold text-ink-muted", big ? "text-3xl" : "text-xl")}>R</span>
         <input
           id={id}
           inputMode="decimal"
@@ -57,11 +57,11 @@ export function MoneyInput({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           aria-invalid={invalid || undefined}
-          className={cn("w-full min-w-0 bg-transparent pl-1 font-display font-bold outline-none", big ? "text-3xl" : "text-xl")}
+          className={cn("w-full min-w-0 bg-transparent pl-1 font-bold outline-none", big ? "text-3xl" : "text-xl")}
           placeholder="0"
         />
       </div>
-      {invalid ? <span className="text-sm text-spend">Type an amount like 120 or 45.50</span> : hint && <span className="text-sm text-ink-muted">{hint}</span>}
+      {invalid ? <span className="text-sm text-negative">Type an amount like 120 or 45.50</span> : hint && <span className="text-sm text-ink-muted">{hint}</span>}
     </div>
   );
 }
@@ -80,7 +80,7 @@ export function TextInput({ label, value, onChange, placeholder, list }: { label
         placeholder={placeholder}
         list={list ? `${id}-list` : undefined}
         autoComplete="off"
-        className="h-12 min-w-0 rounded-xl border-[1.5px] border-line-strong bg-[#F9FBF9] px-3 text-base outline-none focus:border-brand"
+        className="h-12 min-w-0 rounded-xl border-[1.5px] border-input-border bg-[#F9FBF9] px-3 text-base outline-none focus:border-brand"
       />
       {list && (
         <datalist id={`${id}-list`}>
@@ -128,7 +128,7 @@ export function Choices<T extends string>({
               className={cn(
                 "flex min-h-12 flex-col items-center justify-center rounded-xl border-[1.5px] px-3 py-1.5 text-[15px] leading-tight font-bold transition-colors",
                 !columns && "min-h-11 rounded-full px-4",
-                selected ? "border-night bg-night text-white" : "border-line-strong bg-card text-ink hover:border-ink-muted",
+                selected ? "border-night bg-night text-white" : "border-input-border bg-page text-ink hover:border-ink-muted",
               )}
             >
               {o.label}
@@ -142,13 +142,13 @@ export function Choices<T extends string>({
 }
 
 export function Stepper({ value, onChange, min = 0, label }: { value: number; onChange: (v: number) => void; min?: number; label: string }) {
-  const btn = "flex size-11 shrink-0 items-center justify-center rounded-full border-[1.5px] border-line-strong bg-card disabled:opacity-40";
+  const btn = "flex size-11 shrink-0 items-center justify-center rounded-full border-[1.5px] border-input-border bg-page disabled:opacity-40";
   return (
     <div className="flex items-center gap-1.5">
       <button type="button" className={btn} aria-label={`One less ${label}`} disabled={value <= min} onClick={() => onChange(Math.max(min, value - 1))}>
         <Minus className="size-5" aria-hidden />
       </button>
-      <span className="min-w-10 text-center font-display text-[22px] font-bold" aria-live="polite" aria-label={`${value} ${label}`}>
+      <span className="min-w-10 text-center text-[22px] font-bold" aria-live="polite" aria-label={`${value} ${label}`}>
         {value}
       </span>
       <button type="button" className={btn} aria-label={`One more ${label}`} onClick={() => onChange(value + 1)}>

@@ -13,6 +13,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { cn } from "@/lib/utils";
 import { JournalEntryTable } from "./journal-entry";
 import { Divider, Pill, STROKE } from "./screen";
+import { SHEET_HANDLE, SHEET_OR_DIALOG } from "./sheet-style";
 
 interface Pending {
   cmd: Command;
@@ -94,9 +95,9 @@ function ConfirmSheet({ pending, onCancel, onConfirm }: { pending: Pending | nul
         side="bottom"
         showCloseButton={false}
         onOpenAutoFocus={(e) => e.preventDefault()}
-        className="mx-auto max-h-[92dvh] max-w-[440px] gap-4 overflow-y-auto rounded-t-[28px] border-0 px-5 pt-2.5 pb-6 shadow-[0_-8px_32px_rgba(12,26,20,0.12)]"
+        className={SHEET_OR_DIALOG}
       >
-        <span aria-hidden className="h-1 w-10 self-center rounded-sm bg-input-border" />
+        <span aria-hidden className={SHEET_HANDLE} />
         <SheetHeader className="gap-1 p-0">
           <SheetTitle className="text-[22px] font-semibold tracking-[-0.02em]">Check and save</SheetTitle>
           <SheetDescription className="text-[15px] text-ink-muted">{pending?.summary}</SheetDescription>

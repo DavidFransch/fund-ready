@@ -13,6 +13,8 @@ export interface SavedDemo {
   version: number;
   anchorDate: string;
   userCommands: Command[];
+  /** Clock time ("HH:MM") each of the user's commands was recorded. */
+  times?: Record<string, string>;
 }
 
 export function readSaved(): SavedDemo | null {

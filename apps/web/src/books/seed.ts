@@ -21,11 +21,11 @@ import {
 export const BUSINESS = { name: "Mama Tee Spaza", owner: "Thandeka", area: "Gugulethu" } as const;
 
 /** The item the demo script buys, sells and counts. It always ends the history at HERO_QTY. */
-export const HERO_ITEM = "oil";
+export const HERO_ITEM = "cooldrink";
 export const HERO_QTY = 4;
 
 export const SUPPLIERS = {
-  wholesaler: "Gugs Wholesalers",
+  wholesaler: "Gugulethu Cash & Carry",
   van: "Bread and milk van",
   plastics: "Plastics wholesaler",
 } as const;
@@ -39,7 +39,7 @@ interface SampleItem extends Item {
 export const SAMPLE_ITEMS: SampleItem[] = [
   { id: "bread", name: "Brown bread", kind: "stock", unit: "loaves", salePrice: rand(20), reorderLevel: 20, cost: rand(14), supplier: SUPPLIERS.van },
   { id: "milk", name: "Milk 1L", kind: "stock", unit: "cartons", salePrice: rand(24), reorderLevel: 15, cost: rand(17), supplier: SUPPLIERS.van },
-  { id: "cooldrink", name: "Cooldrink 2L", kind: "stock", unit: "bottles", salePrice: rand(32), reorderLevel: 12, cost: rand(22), supplier: SUPPLIERS.wholesaler },
+  { id: "cooldrink", name: "Cooldrink 2L", kind: "stock", unit: "bottles", salePrice: rand(30), reorderLevel: 12, cost: rand(22), supplier: SUPPLIERS.wholesaler },
   { id: "maize", name: "Maize meal 5kg", kind: "stock", unit: "bags", salePrice: rand(75), reorderLevel: 8, cost: rand(55), supplier: SUPPLIERS.wholesaler },
   { id: "sugar", name: "Sugar 2.5kg", kind: "stock", unit: "bags", salePrice: rand(62), reorderLevel: 8, cost: rand(45), supplier: SUPPLIERS.wholesaler },
   { id: "oil", name: "Sunflower oil 2L", kind: "stock", unit: "bottles", salePrice: rand(65), reorderLevel: 6, cost: rand(48), supplier: SUPPLIERS.wholesaler },
@@ -103,6 +103,8 @@ export interface SampleBusiness {
   end: string;
   /** Commands the ledger refused while generating; should always be zero. */
   rejected: number;
+  /** Time of day each command was recorded ("HH:MM"), for display. */
+  times: Map<string, string>;
 }
 
 /**
@@ -117,12 +119,23 @@ export function generateSampleBusiness(today: string): SampleBusiness {
   const r = rng(`mama-tee:${today}`);
   let n = 0;
   let rejected = 0;
+  // Times come from their own generator so they never change the sample history itself.
+  const clock = rng(`mama-tee-times:${today}`);
+  const times = new Map<string, string>();
+  let day = "";
+  let minutes = 0;
 
   const add = (cmd: CommandInput): boolean => {
     const full = { ...cmd, id: seedUuid(`mama-tee:${today}:${n++}`) } as Command;
     try {
       book.execute(full);
       commands.push(full);
+      if (full.date !== day) {
+        day = full.date;
+        minutes = 7 * 60 + clock.int(0, 25);
+      }
+      minutes = Math.min(20 * 60 + 30, minutes + clock.int(6, 50));
+      times.set(full.id, `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`);
       return true;
     } catch {
       rejected++;
@@ -165,12 +178,14 @@ export function generateSampleBusiness(today: string): SampleBusiness {
     if (d.endsWith("-05") || d.endsWith("-20")) pay(d, rand(99), "data", "Airtime");
 
     // Morning and afternoon trade; quieter on Sundays.
-    for (const share of dow === 0 ? [0.6, 0.5] : [0.7, 0.6, 0.7]) {
+    const sessions = dow === 0 ? [0.6, 0.5] : [0.7, 0.6, 0.7];
+    for (const [si, share] of sessions.entries()) {
       const lines = SAMPLE_ITEMS.filter((i) => qty(i.id) > 0 && r.chance(share) && !(d === end && i.id === HERO_ITEM)).map((i) =>
         saleLine(i.id, Math.min(qty(i.id), r.int(1, Math.max(1, Math.round((i.reorderLevel ?? 5) / 4))))),
       );
-      // On the last day, sell the demo item down towards its known quantity, a couple at a time.
-      if (d === end && qty(HERO_ITEM) > HERO_QTY) lines.push(saleLine(HERO_ITEM, Math.min(2, qty(HERO_ITEM) - HERO_QTY)));
+      // On the last day, sell the demo item down to its known quantity, spread over the day's trade.
+      const extra = qty(HERO_ITEM) - HERO_QTY;
+      if (d === end && extra > 0) lines.push(saleLine(HERO_ITEM, Math.ceil(extra / (sessions.length - si))));
       if (lines.length) add({ kind: "sale", date: d, paidWith: r.chance(0.85) ? "cash" : "card", lines });
     }
 
@@ -212,5 +227,5 @@ export function generateSampleBusiness(today: string): SampleBusiness {
     add({ kind: "expense", date: end, amount: cost, category: "stock", paidFrom: "cash", supplier: SUPPLIERS.wholesaler, stockLines: [{ itemId: HERO_ITEM, qty: q, cost }] });
   }
 
-  return { book, commands, start, end, rejected };
+  return { book, commands, start, end, rejected, times };
 }

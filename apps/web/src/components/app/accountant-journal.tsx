@@ -1,31 +1,55 @@
 "use client";
 
-import type { JournalEntry, SourceType } from "@app/ledger";
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
-import { titleFor } from "@/books/describe";
-import { chronological, commandMap } from "@/books/selectors";
+import { Download } from "lucide-react";
+import { Fragment, useMemo, useState, useSyncExternalStore } from "react";
+import { formatDay } from "@/books/dates";
+import type { EntryType } from "@/books/describe";
+import { byDay, journalRows, type JournalRow } from "@/books/selectors";
 import type { BooksSnapshot } from "@/books/store";
 import { Button } from "@/components/ui/button";
-import { relativeDay } from "@/lib/format";
+import { money, relativeDay } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { Choices } from "./inputs";
+import { SectionHeader, Status } from "./accountant-reports";
 import { JournalEntryTable } from "./journal-entry";
+import { STROKE } from "./screen";
 
-const SOURCE_LABEL: Record<SourceType, string> = {
-  opening_balance: "Opening balances",
-  sale: "Sale",
-  payment_received: "Customer payment",
-  payment_made: "Supplier payment",
-  expense: "Purchase / expense",
-  stock_count: "Stock count",
-  transfer: "Transfer",
-  owner_contribution: "Owner contribution",
-  owner_drawing: "Owner drawing",
-  reversal: "Reversal",
-  manual: "Manual journal",
+type Filter = "today" | "all" | "sales" | "purchases" | "stock" | "cash";
+const FILTERS: { value: Filter; label: string }[] = [
+  { value: "today", label: "Today" },
+  { value: "all", label: "All" },
+  { value: "sales", label: "Sales" },
+  { value: "purchases", label: "Purchases" },
+  { value: "stock", label: "Stock" },
+  { value: "cash", label: "Petty cash" },
+];
+
+const TYPE_COLOR: Record<EntryType, string> = {
+  Sale: "text-positive",
+  Stock: "text-negative",
+  "Petty cash": "text-brand",
+  Purchase: "text-[#3E4642]",
+  Expense: "text-[#3E4642]",
+  Payment: "text-[#3E4642]",
+  Owner: "text-[#3E4642]",
+  Opening: "text-[#3E4642]",
 };
 
-type Filter = "demo" | "today" | "all";
+function keep(r: JournalRow, f: Filter, today: string): boolean {
+  switch (f) {
+    case "today":
+      return r.entry.date === today;
+    case "sales":
+      return r.type === "Sale";
+    case "purchases":
+      return r.type === "Purchase" || r.type === "Expense" || r.type === "Payment";
+    case "stock":
+      return r.touchesStock;
+    case "cash":
+      return r.touchesCash;
+    default:
+      return true;
+  }
+}
 
 /** The entry id in ?entry=, read from the browser so the page can stay prerendered. */
 function useEntryParam(): string | null {
@@ -36,77 +60,180 @@ function useEntryParam(): string | null {
   );
 }
 
-export function AccountantJournal({ snapshot }: { snapshot: BooksSnapshot }) {
+export function AccountantJournal({ snapshot, onExport }: { snapshot: BooksSnapshot; onExport: () => void }) {
   const focus = useEntryParam();
-  const hasDemo = snapshot.userCommandIds.size > 0;
-  const [chosen, setChosen] = useState<Filter | null>(null);
-  const [limit, setLimit] = useState(30);
-  // A linked entry from the sample history is only visible under "All".
-  const focusIsDemo = focus ? snapshot.userCommandIds.has(focus) : true;
-  const filter: Filter = chosen ?? (!focusIsDemo ? "all" : hasDemo ? "demo" : "all");
+  const all = useMemo(() => journalRows(snapshot), [snapshot]);
+  const focused = focus ? all.find((r) => r.entry.id === focus) : undefined;
+  const [chosenFilter, setFilter] = useState<Filter | null>(null);
+  const [picked, setPicked] = useState<string | null>(null);
+  const [limit, setLimit] = useState(60);
+  // A linked entry from an earlier day is only visible under "All".
+  const filter: Filter = chosenFilter ?? (focused && focused.entry.date !== snapshot.today ? "all" : "today");
+  const rows = all.filter((r) => keep(r, filter, snapshot.today));
+  const selected = all.find((r) => r.entry.id === (picked ?? focus)) ?? rows[0];
 
-  const rows = useMemo(() => {
-    const cmds = commandMap(snapshot);
-    const all = chronological(snapshot.book.entries).reverse();
-    const kept = all.filter((e) => (filter === "demo" ? snapshot.userCommandIds.has(e.id) : filter === "today" ? e.date === snapshot.today : true));
-    return kept.map((e) => ({ entry: e, title: titleFor(cmds.get(e.id), snapshot.book, e) }));
-  }, [snapshot, filter]);
+  const today = all.filter((r) => r.entry.date === snapshot.today);
+  const todayDebits = today.reduce((s, r) => s + r.entry.lines.reduce((t, l) => t + l.debit, 0), 0);
+  const todayCredits = today.reduce((s, r) => s + r.entry.lines.reduce((t, l) => t + l.credit, 0), 0);
+  const allDebits = all.reduce((s, r) => s + r.entry.lines.reduce((t, l) => t + l.debit, 0), 0);
+  const allCredits = all.reduce((s, r) => s + r.entry.lines.reduce((t, l) => t + l.credit, 0), 0);
 
-  useEffect(() => {
-    if (focus) document.getElementById(`entry-${focus}`)?.scrollIntoView({ block: "center" });
-  }, [focus, filter]);
+  function pick(id: string) {
+    setPicked(id);
+    // Below the wide layout the entry panel sits under the table: bring it into view.
+    if (window.matchMedia("(max-width: 1279px)").matches) document.getElementById("entry-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  const cols = "grid grid-cols-[44px_minmax(0,1fr)_92px] items-center gap-3 sm:grid-cols-[64px_minmax(0,1fr)_120px_110px]";
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="max-w-md">
-        <Choices
-          label="Show"
-          options={[
-            { value: "demo", label: "Added in demo" },
-            { value: "today", label: "Today" },
-            { value: "all", label: "Everything" },
-          ]}
-          value={filter}
-          onChange={setChosen}
-          columns={3}
+    <div className="flex min-w-0 flex-col xl:flex-row">
+      <div className="flex min-w-0 flex-1 flex-col gap-5 px-4 pt-6 pb-10 sm:px-7 sm:pt-7">
+        <SectionHeader
+          title="Journal"
+          subtitle="Every action in the app, recorded as double entry"
+          action={
+            <Button variant="ink" className="h-10 rounded-full px-4 text-sm font-semibold" onClick={onExport}>
+              <Download className="size-4" strokeWidth={STROKE} aria-hidden /> Export for accountant
+            </Button>
+          }
         />
+
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(150px,100%),1fr))] gap-2.5">
+          <Kpi label="Entries today" value={String(today.length)} />
+          <Kpi label="Total debits" value={money(todayDebits)} />
+          <Kpi label="Total credits" value={money(todayCredits)} />
+          <div className="flex flex-col gap-1 rounded-2xl bg-panel px-4 py-3.5">
+            <span className="text-xs font-medium text-ink-muted">Trial balance</span>
+            <span className="flex h-[29px] items-center">
+              <Status ok={allDebits === allCredits}>{allDebits === allCredits ? "Balanced" : "Out of balance"}</Status>
+            </span>
+          </div>
+        </div>
+
+        <div role="tablist" aria-label="Filter" className="flex gap-5 overflow-x-auto border-b border-hairline">
+          {FILTERS.map((f) => (
+            <button
+              key={f.value}
+              type="button"
+              role="tab"
+              aria-selected={f.value === filter}
+              onClick={() => {
+                setFilter(f.value);
+                setLimit(60);
+              }}
+              className={cn("h-10 shrink-0 border-b-2 text-sm whitespace-nowrap", f.value === filter ? "border-ink font-semibold text-ink" : "border-transparent font-medium text-ink-muted hover:text-ink")}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
+        {rows.length === 0 ? (
+          <p className="text-[15px] text-ink-muted">Nothing here yet. Record something in the app and its journal entry appears here.</p>
+        ) : (
+          <div>
+            <div className="flex flex-col">
+              <div className={cn(cols, "px-2 pb-2.5 text-xs font-medium text-ink-muted sm:px-3")}>
+                <span>Time</span>
+                <span>What happened</span>
+                <span className="hidden sm:block">Type</span>
+                <span className="text-right">Amount</span>
+              </div>
+              {byDay(rows.slice(0, limit).map((r) => ({ ...r, date: r.entry.date }))).map((g) => (
+                <Fragment key={g.date}>
+                  <div className="mt-1 rounded-lg bg-panel px-3 py-2 text-xs font-semibold text-ink-muted">
+                    {dayHeading(g.date, snapshot.today)}
+                  </div>
+                  {g.rows.map((r) => {
+                    const isSel = r.entry.id === selected?.entry.id;
+                    return (
+                      <button
+                        key={r.entry.id}
+                        type="button"
+                        aria-pressed={isSel}
+                        onClick={() => pick(r.entry.id)}
+                        className={cn(cols, "border-b border-hairline px-2 py-3 text-left sm:px-3", isSel ? "bg-brand-wash" : "hover:bg-panel")}
+                      >
+                        <span className="text-sm text-ink-muted">{r.time}</span>
+                        <span className="flex min-w-0 flex-col gap-0.5">
+                          <span className={cn("truncate text-sm", isSel ? "font-semibold" : "font-medium")}>{r.title}</span>
+                          <span className="truncate text-[13px] text-ink-muted">
+                            {r.detail}
+                            {r.isUser && " · added in demo"}
+                          </span>
+                        </span>
+                        <span className={cn("hidden text-[13px] font-semibold sm:block", TYPE_COLOR[r.type])}>{r.type}</span>
+                        <span className={cn("text-right text-sm", isSel ? "font-semibold" : "font-medium")}>{money(r.amount)}</span>
+                      </button>
+                    );
+                  })}
+                </Fragment>
+              ))}
+            </div>
+          </div>
+        )}
+        {rows.length > limit && (
+          <Button variant="outline" size="touch" className="self-center" onClick={() => setLimit(limit + 120)}>
+            Show older entries ({rows.length - limit} more)
+          </Button>
+        )}
       </div>
-      {rows.length === 0 && <p className="text-[15px] text-ink-muted">Nothing here yet. Record something in the app and its journal entry appears here.</p>}
-      <ol className="grid gap-3 lg:grid-cols-2">
-        {rows.slice(0, limit).map(({ entry, title }) => (
-          <EntryCard key={entry.id} entry={entry} title={title} today={snapshot.today} highlight={entry.id === focus} isDemo={snapshot.userCommandIds.has(entry.id)} />
-        ))}
-      </ol>
-      {rows.length > limit && (
-        <Button variant="outline" size="touch" className="self-center" onClick={() => setLimit(limit + 60)}>
-          Show older entries ({rows.length - limit} more)
-        </Button>
-      )}
+
+      {selected && <EntryPanel row={selected} today={snapshot.today} />}
     </div>
   );
 }
 
-function EntryCard({ entry, title, today, highlight, isDemo }: { entry: JournalEntry; title: string; today: string; highlight: boolean; isDemo: boolean }) {
+/** "Today · Tuesday 24 November", or just the long date for older days. */
+function dayHeading(date: string, today: string): string {
+  const long = formatDay(date, { weekday: "long", day: "numeric", month: "long" });
+  const rel = relativeDay(date, today);
+  return rel === "Today" || rel === "Yesterday" ? `${rel} · ${long}` : long;
+}
+
+function Kpi({ label, value }: { label: string; value: string }) {
   return (
-    <li
-      id={`entry-${entry.id}`}
-      className={cn("flex flex-col gap-2 rounded-2xl border-[1.5px] bg-page p-4", highlight ? "border-accent ring-4 ring-accent/30" : "border-divider")}
-    >
-      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <span className="text-[15px] font-bold">{title}</span>
-        <span className="text-[13px] text-ink-muted tabular-nums">
-          {entry.date} · {relativeDay(entry.date, today)}
+    <div className="flex flex-col gap-1 rounded-2xl bg-panel px-4 py-3.5">
+      <span className="text-xs font-medium text-ink-muted">{label}</span>
+      <span className="text-[22px] font-semibold">{value}</span>
+    </div>
+  );
+}
+
+function EntryPanel({ row, today }: { row: JournalRow; today: string }) {
+  const debit = row.entry.lines.reduce((s, l) => s + l.debit, 0);
+  const credit = row.entry.lines.reduce((s, l) => s + l.credit, 0);
+  const when = row.entry.date === today ? `today ${row.time}` : `${row.entry.date} ${row.time}`;
+  return (
+    <aside id="entry-panel" aria-label="Journal entry" className="flex w-full scroll-mt-4 flex-col gap-[18px] border-t border-hairline px-4 py-7 sm:px-6 xl:w-[380px] xl:shrink-0 xl:border-t-0 xl:border-l">
+      <div className="flex flex-col gap-1.5">
+        <span className="font-mono text-xs font-medium text-ink-muted">{row.ref}</span>
+        <span className="text-xl font-semibold tracking-[-0.01em]">{row.title}</span>
+        <span className="text-sm text-ink-muted">
+          {row.detail} · {when}
         </span>
       </div>
-      <div className="flex flex-wrap items-center gap-1.5 text-xs">
-        <span className="rounded-full bg-panel-strong px-2 py-0.5 font-bold text-ink-muted">{SOURCE_LABEL[entry.source.type]}</span>
-        {isDemo && <span className="rounded-full bg-brand-tint px-2 py-0.5 font-bold text-brand-strong">Added in demo</span>}
-        <span className="text-ink-muted">Memo: {entry.memo}</span>
+      <div className="rounded-2xl bg-panel p-3.5">
+        <JournalEntryTable entry={row.entry} />
       </div>
-      <JournalEntryTable entry={entry} />
-      <span className="truncate font-mono text-[11px] text-ink-muted" title="Entry id (also the command's idempotency key)">
-        {entry.id}
-      </span>
-    </li>
+      <Status ok={debit === credit}>{debit === credit ? "Debits equal credits" : "Out of balance"}</Status>
+      <div className="flex flex-col rounded-2xl bg-panel text-sm">
+        <div className="flex justify-between gap-3 px-3.5 py-3">
+          <span className="text-ink-muted">Recorded from</span>
+          <span className="text-right font-medium">{row.from}</span>
+        </div>
+        <div className="mx-3.5 h-px bg-divider" />
+        <div className="flex justify-between gap-3 px-3.5 py-3">
+          <span className="text-ink-muted">Recorded by</span>
+          <span className="text-right font-medium">Thandeka (owner)</span>
+        </div>
+        <div className="mx-3.5 h-px bg-divider" />
+        <div className="flex justify-between gap-3 px-3.5 py-3">
+          <span className="text-ink-muted">Can it be edited?</span>
+          <span className="text-right font-medium">No · reverse it instead</span>
+        </div>
+      </div>
+    </aside>
   );
 }

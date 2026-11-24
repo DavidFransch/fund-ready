@@ -1,111 +1,123 @@
 "use client";
 
-import { ACC, generalLedgerCsv, netBalances, trialBalanceCsv } from "@app/ledger";
-import { ChevronLeft, Download } from "lucide-react";
+import { generalLedgerCsv, trialBalanceCsv } from "@app/ledger";
+import { ArrowLeft, BookOpen, ChartLine, Download, Landmark, Scale, type LucideIcon } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { periodRange, type PeriodKind } from "@/books/dates";
 import { BUSINESS } from "@/books/seed";
 import { stockMatchesLedger } from "@/books/selectors";
 import { useBooks } from "@/books/store";
 import { AccountantJournal } from "@/components/app/accountant-journal";
-import { acc, Badge, BalanceSheetView, downloadCsv, IncomeStatementView, TrialBalanceTable } from "@/components/app/accountant-reports";
+import { BalanceSheetView, downloadCsv, IncomeStatementView, SectionHeader, TrialBalanceTable } from "@/components/app/accountant-reports";
 import { PeriodPicker } from "@/components/app/period-picker";
+import { Logo, STROKE } from "@/components/app/screen";
 import { Button } from "@/components/ui/button";
-import { Loading } from "@/components/app/screen";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
+
+type Section = "journal" | "tb" | "pl" | "bs" | "exports";
+const SECTIONS: { value: Section; label: string; icon: LucideIcon }[] = [
+  { value: "journal", label: "Journal", icon: BookOpen },
+  { value: "tb", label: "Trial balance", icon: Scale },
+  { value: "pl", label: "Profit and loss", icon: ChartLine },
+  { value: "bs", label: "Balance sheet", icon: Landmark },
+  { value: "exports", label: "Exports", icon: Download },
+];
 
 export default function AccountantPage() {
   const { snapshot } = useBooks();
+  const [section, setSection] = useState<Section>("journal");
   const [kind, setKind] = useState<PeriodKind>("month");
   const [offset, setOffset] = useState(0);
-  const checks = useMemo(() => {
-    if (!snapshot) return null;
-    const entries = snapshot.book.entries;
-    const debits = entries.reduce((s, e) => s + e.lines.reduce((t, l) => t + l.debit, 0), 0);
-    const credits = entries.reduce((s, e) => s + e.lines.reduce((t, l) => t + l.credit, 0), 0);
-    return { count: entries.length, debits, credits, stockOk: stockMatchesLedger(snapshot), stock: netBalances(entries).get(ACC.stock) ?? 0 };
-  }, [snapshot]);
-  if (!snapshot || !checks) return <Loading />;
+  if (!snapshot) {
+    return <div className="min-h-dvh animate-pulse bg-page" aria-busy="true" aria-label="Loading the books" />;
+  }
+  const entries = snapshot.book.entries;
+  const range = periodRange(kind, snapshot.today, offset);
+  const navItem = "flex h-10 shrink-0 items-center gap-2.5 rounded-[10px] px-2.5 text-sm whitespace-nowrap";
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-6xl flex-col gap-5 bg-page px-4 pt-4 pb-10 sm:px-8">
-      <header className="flex items-center gap-2">
-        <Link href="/" aria-label="Back to the app" className="flex size-11 items-center justify-center rounded-full hover:bg-panel-strong">
-          <ChevronLeft className="size-6" aria-hidden />
-        </Link>
-        <div className="flex flex-col">
-          <h1 className="text-2xl font-bold">Accountant view</h1>
-          <span className="text-sm text-ink-muted">
-            {BUSINESS.name}, {BUSINESS.area} · the books behind every action
+    <div className="flex min-h-dvh flex-col bg-page lg:flex-row">
+      <aside className="flex w-full flex-col gap-3 border-b border-hairline px-3.5 py-4 lg:sticky lg:top-0 lg:h-dvh lg:w-[248px] lg:shrink-0 lg:gap-5 lg:border-r lg:border-b-0 lg:py-5">
+        <div className="flex items-center gap-2.5 p-2">
+          <Logo size={32} />
+          <span className="flex min-w-0 flex-col">
+            <span className="text-sm font-semibold">{BUSINESS.name}</span>
+            <span className="text-xs text-ink-muted">Accountant view</span>
           </span>
         </div>
-      </header>
+        <nav aria-label="Books" className="flex gap-0.5 overflow-x-auto lg:flex-col">
+          {SECTIONS.map(({ value, label, icon: Icon }) => (
+            <button
+              key={value}
+              type="button"
+              aria-current={section === value ? "page" : undefined}
+              onClick={() => setSection(value)}
+              className={cn(navItem, section === value ? "bg-panel-strong font-semibold text-ink" : "font-medium text-[#3E4642] hover:bg-panel")}
+            >
+              <Icon className="size-[18px]" strokeWidth={STROKE} aria-hidden />
+              {label}
+            </button>
+          ))}
+          <Link href="/" className={cn(navItem, "font-medium text-[#3E4642] hover:bg-panel lg:hidden")}>
+            <ArrowLeft className="size-[18px]" strokeWidth={STROKE} aria-hidden /> Back to the app
+          </Link>
+        </nav>
+        <Link href="/" className={cn(navItem, "mt-auto hidden font-medium text-[#3E4642] hover:bg-panel lg:flex")}>
+          <ArrowLeft className="size-[18px]" strokeWidth={STROKE} aria-hidden /> Back to the app
+        </Link>
+      </aside>
 
-      <section aria-label="Checks" className="grid gap-3 sm:grid-cols-3">
-        <Check title="Journal entries" detail={`${checks.count} entries, each one balanced`}>
-          <Badge ok={checks.debits === checks.credits}>
-            Debits {acc(checks.debits)} = credits {acc(checks.credits)}
-          </Badge>
-        </Check>
-        <Check title="Stock records" detail={`Item-by-item stock value equals account 1200 Inventory (${acc(checks.stock)})`}>
-          <Badge ok={checks.stockOk}>{checks.stockOk ? "Stock ties to the ledger" : "Stock does not tie"}</Badge>
-        </Check>
-        <Check title="History" detail="Append-only. Every action has a unique id, so a retry never posts twice.">
-          <Badge ok>Double entry</Badge>
-        </Check>
-      </section>
-
-      <Tabs defaultValue="journal" className="gap-4">
-        <TabsList className="h-12 group-data-[orientation=horizontal]/tabs:h-12 w-fit max-w-full justify-start overflow-x-auto rounded-full bg-panel-strong p-1">
-          <TabsTrigger value="journal" className="h-10 flex-none rounded-full px-5 text-[15px] font-bold data-[state=active]:bg-night data-[state=active]:text-white">
-            Journal
-          </TabsTrigger>
-          <TabsTrigger value="tb" className="h-10 flex-none rounded-full px-5 text-[15px] font-bold data-[state=active]:bg-night data-[state=active]:text-white">
-            Trial balance
-          </TabsTrigger>
-          <TabsTrigger value="pl" className="h-10 flex-none rounded-full px-5 text-[15px] font-bold data-[state=active]:bg-night data-[state=active]:text-white">
-            Income statement
-          </TabsTrigger>
-          <TabsTrigger value="bs" className="h-10 flex-none rounded-full px-5 text-[15px] font-bold data-[state=active]:bg-night data-[state=active]:text-white">
-            Balance sheet
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="journal">
-          <AccountantJournal snapshot={snapshot} />
-        </TabsContent>
-        <TabsContent value="tb">
-          <TrialBalanceTable entries={snapshot.book.entries} asAt={snapshot.today} />
-        </TabsContent>
-        <TabsContent value="pl" className="flex max-w-2xl flex-col gap-4">
-          <h2 className="text-xl font-bold">Income statement</h2>
-          <PeriodPicker today={snapshot.today} kind={kind} offset={offset} onChange={(k, o) => { setKind(k); setOffset(o); }} />
-          <IncomeStatementView entries={snapshot.book.entries} from={periodRange(kind, snapshot.today, offset).from} to={periodRange(kind, snapshot.today, offset).to} />
-        </TabsContent>
-        <TabsContent value="bs" className="max-w-2xl">
-          <BalanceSheetView entries={snapshot.book.entries} asAt={snapshot.today} />
-        </TabsContent>
-      </Tabs>
-
-      <section aria-label="Downloads" className="flex flex-wrap items-center gap-2 border-t border-divider pt-4">
-        <span className="mr-2 text-[15px] font-bold">For the accountant&apos;s own software:</span>
-        <Button variant="outline" size="touch" onClick={() => downloadCsv(`trial-balance-${snapshot.today}.csv`, trialBalanceCsv(snapshot.book.entries, snapshot.today))}>
-          <Download className="size-5" aria-hidden /> Trial balance (CSV)
-        </Button>
-        <Button variant="outline" size="touch" onClick={() => downloadCsv(`general-ledger-${snapshot.today}.csv`, generalLedgerCsv(snapshot.book.entries))}>
-          <Download className="size-5" aria-hidden /> General ledger (CSV)
-        </Button>
-      </section>
+      <main className="min-w-0 flex-1">
+        {section === "journal" && <AccountantJournal snapshot={snapshot} onExport={() => setSection("exports")} />}
+        {section !== "journal" && (
+          <div className="flex max-w-4xl flex-col gap-5 px-4 pt-6 pb-10 sm:px-7 sm:pt-7">
+            {section === "tb" && <TrialBalanceTable entries={entries} asAt={snapshot.today} stockTies={stockMatchesLedger(snapshot)} />}
+            {section === "pl" && (
+              <>
+                <SectionHeader title="Profit and loss" subtitle="Income statement for the period" />
+                <div className="max-w-md">
+                  <PeriodPicker
+                    today={snapshot.today}
+                    kind={kind}
+                    offset={offset}
+                    onChange={(k, o) => {
+                      setKind(k);
+                      setOffset(o);
+                    }}
+                  />
+                </div>
+                <IncomeStatementView entries={entries} from={range.from} to={range.to} />
+              </>
+            )}
+            {section === "bs" && <BalanceSheetView entries={entries} asAt={snapshot.today} />}
+            {section === "exports" && (
+              <>
+                <SectionHeader title="Exports" subtitle="For the accountant's own software (Xero, Sage, Excel)" />
+                <div className="flex max-w-2xl flex-col gap-3 rounded-[18px] bg-panel p-4">
+                  <ExportRow title="Trial balance" detail={`Every account's balance as at ${snapshot.today}`} onClick={() => downloadCsv(`trial-balance-${snapshot.today}.csv`, trialBalanceCsv(entries, snapshot.today))} />
+                  <div className="h-px bg-divider" />
+                  <ExportRow title="General ledger" detail={`All ${entries.length} journal entries, line by line`} onClick={() => downloadCsv(`general-ledger-${snapshot.today}.csv`, generalLedgerCsv(entries))} />
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </main>
     </div>
   );
 }
 
-function Check({ title, detail, children }: { title: string; detail: string; children: React.ReactNode }) {
+function ExportRow({ title, detail, onClick }: { title: string; detail: string; onClick: () => void }) {
   return (
-    <div className="flex flex-col gap-2 rounded-2xl border-[1.5px] border-divider bg-page p-4">
-      <span className="text-[15px] font-bold">{title}</span>
-      <span className="text-sm leading-snug text-ink-muted">{detail}</span>
-      <div>{children}</div>
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <span className="flex flex-col gap-0.5">
+        <span className="text-[15px] font-semibold">{title}</span>
+        <span className="text-[13px] text-ink-muted">{detail}</span>
+      </span>
+      <Button variant="ink" className="h-10 rounded-full px-4 text-sm font-semibold" onClick={onClick}>
+        <Download className="size-4" strokeWidth={STROKE} aria-hidden /> Download CSV
+      </Button>
     </div>
   );
 }

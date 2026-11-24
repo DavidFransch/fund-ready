@@ -9,8 +9,8 @@ export function localToday(now = new Date()): IsoDate {
 const asDate = (d: IsoDate) => new Date(`${d}T00:00:00Z`);
 
 export function formatDay(d: IsoDate, opts: Intl.DateTimeFormatOptions = { weekday: "short", day: "numeric", month: "short" }): string {
-  // en-ZA pads days ("01 Oct"); the design writes "1 Oct".
-  return asDate(d).toLocaleDateString("en-ZA", { timeZone: "UTC", ...opts }).replace(/\b0(\d)\b/g, "$1");
+  // en-ZA pads days ("01 Oct") and adds a comma after the weekday; the design writes "Tuesday 1 Oct".
+  return asDate(d).toLocaleDateString("en-ZA", { timeZone: "UTC", ...opts }).replace(/\b0(\d)\b/g, "$1").replace(/^(\p{L}+),/u, "$1");
 }
 
 export type PeriodKind = "day" | "week" | "month";

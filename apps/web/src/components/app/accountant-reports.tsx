@@ -1,9 +1,10 @@
 "use client";
 
 import { balanceSheet, incomeStatement, trialBalance, type JournalEntry } from "@app/ledger";
-import { Check, CircleAlert } from "lucide-react";
+import { CircleAlert, CircleCheck } from "lucide-react";
 import { formatDay } from "@/books/dates";
 import { cn } from "@/lib/utils";
+import { STROKE } from "./screen";
 
 /** Accountant-style number: 1 234.50, negatives in brackets. */
 export function acc(cents: number): string {
@@ -15,78 +16,105 @@ export function acc(cents: number): string {
   return cents < 0 ? `(${s})` : s;
 }
 
-export function Badge({ ok, children }: { ok: boolean; children: React.ReactNode }) {
-  const Icon = ok ? Check : CircleAlert;
+/** Status as coloured text with an icon, e.g. "Debits equal credits". */
+export function Status({ ok, children }: { ok: boolean; children: React.ReactNode }) {
+  const Icon = ok ? CircleCheck : CircleAlert;
   return (
-    <span className={cn("inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[13px] font-bold", ok ? "bg-brand-tint text-brand-strong" : "bg-negative-tint text-negative")}>
-      <Icon className="size-4" aria-hidden />
+    <span className={cn("inline-flex items-center gap-1.5 text-sm font-semibold", ok ? "text-positive" : "text-negative")}>
+      <Icon className="size-[18px]" strokeWidth={STROKE} aria-hidden />
       {children}
     </span>
   );
 }
 
-export function TrialBalanceTable({ entries, asAt }: { entries: readonly JournalEntry[]; asAt: string }) {
-  const tb = trialBalance(entries, asAt);
+export function SectionHeader({ title, subtitle, action }: { title: string; subtitle: string; action?: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-xl font-bold">Trial balance as at {formatDay(asAt, { day: "numeric", month: "long", year: "numeric" })}</h2>
-        <Badge ok={tb.balanced}>{tb.balanced ? "Debits equal credits" : "Out of balance"}</Badge>
+    <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="flex flex-col gap-1">
+        <h1 className="text-[28px] font-semibold">{title}</h1>
+        <span className="text-sm text-ink-muted">{subtitle}</span>
       </div>
-      <div className="overflow-x-auto rounded-2xl border-[1.5px] border-divider bg-page">
-        <table className="w-full min-w-[480px] border-collapse text-[15px] tabular-nums">
-          <thead>
-            <tr className="border-b border-divider text-left text-xs tracking-wide text-ink-muted uppercase">
-              <th className="px-4 py-2.5 font-bold">Code</th>
-              <th className="py-2.5 font-bold">Account</th>
-              <th className="py-2.5 pr-4 text-right font-bold">Debit</th>
-              <th className="py-2.5 pr-4 text-right font-bold">Credit</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tb.rows.map((r) => (
-              <tr key={r.code} className="border-b border-divider/60">
-                <td className="px-4 py-2 font-mono text-sm text-ink-muted">{r.code}</td>
-                <td className="py-2">{r.name}</td>
-                <td className="py-2 pr-4 text-right">{r.debit ? acc(r.debit) : ""}</td>
-                <td className="py-2 pr-4 text-right">{r.credit ? acc(r.credit) : ""}</td>
-              </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr className="border-t-2 border-ink font-bold">
-              <td className="px-4 py-2.5" colSpan={2}>
-                Total
-              </td>
-              <td className="py-2.5 pr-4 text-right">{acc(tb.totalDebit)}</td>
-              <td className="py-2.5 pr-4 text-right">{acc(tb.totalCredit)}</td>
-            </tr>
-          </tfoot>
-        </table>
+      {action}
+    </div>
+  );
+}
+
+const longDate = (d: string) => formatDay(d, { day: "numeric", month: "long", year: "numeric" });
+
+export function TrialBalanceTable({ entries, asAt, stockTies }: { entries: readonly JournalEntry[]; asAt: string; stockTies: boolean }) {
+  const tb = trialBalance(entries, asAt);
+  const row = "grid grid-cols-[72px_minmax(0,1fr)_120px_120px] gap-3 px-3";
+  return (
+    <div className="flex flex-col gap-4">
+      <SectionHeader title="Trial balance" subtitle={`As at ${longDate(asAt)}`} />
+      <div className="flex flex-wrap gap-x-6 gap-y-2">
+        <Status ok={tb.balanced}>{tb.balanced ? "Debits equal credits" : "Out of balance"}</Status>
+        <Status ok={stockTies}>{stockTies ? "Stock records tie to 1200 Inventory" : "Stock records do not tie"}</Status>
+      </div>
+      <div className="overflow-x-auto">
+        <div role="table" aria-label="Trial balance" className="flex min-w-[520px] flex-col text-sm">
+          <div role="row" className={cn(row, "pb-2.5 text-xs font-medium text-ink-muted")}>
+            <span role="columnheader">Code</span>
+            <span role="columnheader">Account</span>
+            <span role="columnheader" className="text-right">
+              Debit
+            </span>
+            <span role="columnheader" className="text-right">
+              Credit
+            </span>
+          </div>
+          {tb.rows.map((r) => (
+            <div role="row" key={r.code} className={cn(row, "border-b border-hairline py-3")}>
+              <span role="cell" className="font-mono text-ink-muted">
+                {r.code}
+              </span>
+              <span role="cell">{r.name}</span>
+              <span role="cell" className="text-right font-medium">
+                {r.debit ? acc(r.debit) : ""}
+              </span>
+              <span role="cell" className="text-right font-medium">
+                {r.credit ? acc(r.credit) : ""}
+              </span>
+            </div>
+          ))}
+          <div role="row" className={cn(row, "mt-1 rounded-lg bg-panel py-3 font-semibold")}>
+            <span role="cell" className="col-span-2">
+              Total
+            </span>
+            <span role="cell" className="text-right">
+              {acc(tb.totalDebit)}
+            </span>
+            <span role="cell" className="text-right">
+              {acc(tb.totalCredit)}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
 function Statement({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="overflow-x-auto rounded-2xl border-[1.5px] border-divider bg-page px-4 py-2">
-      <table className="w-full min-w-[420px] border-collapse text-[15px] tabular-nums">
-        <tbody>{children}</tbody>
-      </table>
-    </div>
-  );
+  return <div className="flex max-w-2xl flex-col rounded-[18px] bg-panel px-4 py-2 text-[15px]">{children}</div>;
 }
 
 function Line({ label, code, value, kind = "line" }: { label: string; code?: string; value?: number; kind?: "head" | "line" | "total" | "grand" }) {
   return (
-    <tr className={cn(kind === "head" && "text-xs tracking-wide text-ink-muted uppercase", kind === "total" && "border-t border-divider font-bold", kind === "grand" && "border-t-2 border-ink font-bold")}>
-      <td className={cn("py-1.5", kind === "line" && "pl-4", kind === "head" && "pt-4 font-bold")}>
+    <div
+      className={cn(
+        "flex justify-between gap-4 py-2",
+        kind === "head" && "pt-4 text-xs font-semibold tracking-[0.02em] text-ink-muted uppercase",
+        kind === "line" && "pl-3",
+        kind === "total" && "border-t border-divider font-semibold",
+        kind === "grand" && "border-t-2 border-ink font-semibold",
+      )}
+    >
+      <span>
         {code && <span className="mr-2 font-mono text-sm text-ink-muted">{code}</span>}
         {label}
-      </td>
-      <td className="py-1.5 text-right">{value === undefined ? "" : acc(value)}</td>
-    </tr>
+      </span>
+      <span className="whitespace-nowrap">{value === undefined ? "" : acc(value)}</span>
+    </div>
   );
 }
 
@@ -117,11 +145,9 @@ export function IncomeStatementView({ entries, from, to }: { entries: readonly J
 export function BalanceSheetView({ entries, asAt }: { entries: readonly JournalEntry[]; asAt: string }) {
   const bs = balanceSheet(entries, asAt);
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-xl font-bold">Balance sheet as at {formatDay(asAt, { day: "numeric", month: "long", year: "numeric" })}</h2>
-        <Badge ok={bs.balanced}>{bs.balanced ? "Assets = liabilities + equity" : "Does not balance"}</Badge>
-      </div>
+    <div className="flex flex-col gap-4">
+      <SectionHeader title="Balance sheet" subtitle={`As at ${longDate(asAt)}`} />
+      <Status ok={bs.balanced}>{bs.balanced ? "Assets equal liabilities plus equity" : "Does not balance"}</Status>
       <Statement>
         <Line label="Assets" kind="head" />
         {bs.assets.map((l) => (

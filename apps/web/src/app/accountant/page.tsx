@@ -1,19 +1,24 @@
 "use client";
 
-import { netBalances, ACC } from "@app/ledger";
-import { ChevronLeft } from "lucide-react";
+import { ACC, generalLedgerCsv, netBalances, trialBalanceCsv } from "@app/ledger";
+import { ChevronLeft, Download } from "lucide-react";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { periodRange, type PeriodKind } from "@/books/dates";
 import { BUSINESS } from "@/books/seed";
 import { stockMatchesLedger } from "@/books/selectors";
 import { useBooks } from "@/books/store";
 import { AccountantJournal } from "@/components/app/accountant-journal";
-import { acc, Badge, TrialBalanceTable } from "@/components/app/accountant-reports";
+import { acc, Badge, BalanceSheetView, downloadCsv, IncomeStatementView, TrialBalanceTable } from "@/components/app/accountant-reports";
+import { PeriodPicker } from "@/components/app/period-picker";
+import { Button } from "@/components/ui/button";
 import { Loading } from "@/components/app/screen";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function AccountantPage() {
   const { snapshot } = useBooks();
+  const [kind, setKind] = useState<PeriodKind>("month");
+  const [offset, setOffset] = useState(0);
   const checks = useMemo(() => {
     if (!snapshot) return null;
     const entries = snapshot.book.entries;
@@ -59,6 +64,12 @@ export default function AccountantPage() {
           <TabsTrigger value="tb" className="h-10 flex-none rounded-full px-5 text-[15px] font-bold data-[state=active]:bg-night data-[state=active]:text-white">
             Trial balance
           </TabsTrigger>
+          <TabsTrigger value="pl" className="h-10 flex-none rounded-full px-5 text-[15px] font-bold data-[state=active]:bg-night data-[state=active]:text-white">
+            Income statement
+          </TabsTrigger>
+          <TabsTrigger value="bs" className="h-10 flex-none rounded-full px-5 text-[15px] font-bold data-[state=active]:bg-night data-[state=active]:text-white">
+            Balance sheet
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="journal">
           <AccountantJournal snapshot={snapshot} />
@@ -66,7 +77,25 @@ export default function AccountantPage() {
         <TabsContent value="tb">
           <TrialBalanceTable entries={snapshot.book.entries} asAt={snapshot.today} />
         </TabsContent>
+        <TabsContent value="pl" className="flex max-w-2xl flex-col gap-4">
+          <h2 className="font-display text-xl font-bold">Income statement</h2>
+          <PeriodPicker today={snapshot.today} kind={kind} offset={offset} onChange={(k, o) => { setKind(k); setOffset(o); }} />
+          <IncomeStatementView entries={snapshot.book.entries} from={periodRange(kind, snapshot.today, offset).from} to={periodRange(kind, snapshot.today, offset).to} />
+        </TabsContent>
+        <TabsContent value="bs" className="max-w-2xl">
+          <BalanceSheetView entries={snapshot.book.entries} asAt={snapshot.today} />
+        </TabsContent>
       </Tabs>
+
+      <section aria-label="Downloads" className="flex flex-wrap items-center gap-2 border-t border-line pt-4">
+        <span className="mr-2 text-[15px] font-bold">For the accountant&apos;s own software:</span>
+        <Button variant="outline" size="touch" onClick={() => downloadCsv(`trial-balance-${snapshot.today}.csv`, trialBalanceCsv(snapshot.book.entries, snapshot.today))}>
+          <Download className="size-5" aria-hidden /> Trial balance (CSV)
+        </Button>
+        <Button variant="outline" size="touch" onClick={() => downloadCsv(`general-ledger-${snapshot.today}.csv`, generalLedgerCsv(snapshot.book.entries))}>
+          <Download className="size-5" aria-hidden /> General ledger (CSV)
+        </Button>
+      </section>
     </div>
   );
 }

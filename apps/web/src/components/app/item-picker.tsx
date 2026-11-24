@@ -18,20 +18,7 @@ export function ItemIcon({ id, className }: { id: string; className?: string }) 
 }
 
 /** Choose one stock item from a grey panel of rows. */
-export function ItemPicker({
-  label,
-  rows,
-  onPick,
-  onChange,
-  detail,
-}: {
-  label: string;
-  rows: StockRow[];
-  onPick?: (id: string) => void;
-  /** @deprecated shim */ onChange?: (id: string) => void;
-  /** @deprecated shim */ value?: string | null;
-  detail: (r: StockRow) => string;
-}) {
+export function ItemPicker({ label, rows, onPick, detail }: { label: string; rows: StockRow[]; onPick: (id: string) => void; detail: (r: StockRow) => string }) {
   return (
     <div className="flex flex-col gap-2">
       <span className="px-1 text-[13px] font-medium text-ink-muted">{label}</span>
@@ -39,7 +26,7 @@ export function ItemPicker({
         {rows.map((r, i) => (
           <Fragment key={r.id}>
             {i > 0 && <Divider inset />}
-            <button type="button" onClick={() => (onPick ?? onChange)?.(r.id)} className="flex min-h-16 items-center gap-3 rounded-[18px] px-3.5 py-2.5 text-left hover:bg-panel-strong">
+            <button type="button" onClick={() => onPick(r.id)} className="flex min-h-16 items-center gap-3 rounded-[18px] px-3.5 py-2.5 text-left hover:bg-panel-strong">
               <ItemIcon id={r.id} />
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="text-[15px] font-semibold">{r.name}</span>
@@ -67,6 +54,3 @@ export function ChosenItem({ row, detail, onChange }: { row: StockRow; detail: s
   );
 }
 
-/** @deprecated shims, removed at the end of the v2 redesign. */
-export const costDetail = (r: StockRow) => `${r.qty} in stock · last cost R${(r.unitCost / 100).toFixed(2)}`;
-export const priceDetail = (r: StockRow) => `${r.qty} in stock · sells for R${(r.salePrice / 100).toFixed(2)}`;

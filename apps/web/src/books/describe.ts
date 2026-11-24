@@ -260,7 +260,3 @@ export function saveLabel(cmd: Command): string {
   }
 }
 
-/** @deprecated shim, removed at the end of the v2 redesign. */
-export function titleFor(cmd: Command | undefined, book: Book, entry?: JournalEntry): string {
-  return rowText(cmd, book, entry).title;
-}

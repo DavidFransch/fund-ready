@@ -161,8 +161,3 @@ export function Pill({ children, tone = "brand" }: { children: React.ReactNode; 
   );
 }
 
-/** @deprecated Temporary shims while screens move to v2. Removed at the end of the redesign. */
-export const Card = Panel;
-export function SectionTitle({ className, ...props }: React.ComponentProps<"h2">) {
-  return <h2 className={cn("px-1 text-[15px] font-semibold", className)} {...props} />;
-}

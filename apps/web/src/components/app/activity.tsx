@@ -19,7 +19,7 @@ export function SignedMoney({ cents, direction, className }: { cents: number; di
 }
 
 /** Rows of what happened, each linking to its journal entry. */
-export function ActivityList({ rows }: { rows: ActivityRow[]; /** @deprecated shim */ today?: string }) {
+export function ActivityList({ rows }: { rows: ActivityRow[] }) {
   return (
     <Panel className="flex flex-col py-0.5">
       {rows.map((r, i) => {

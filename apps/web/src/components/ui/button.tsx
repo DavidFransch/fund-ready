@@ -20,8 +20,6 @@ const buttonVariants = cva(
         ink: "bg-ink text-white hover:bg-ink/90",
         /** Text-only tertiary action. */
         tertiary: "bg-transparent text-ink hover:bg-panel",
-        /** @deprecated shim, removed at the end of the v2 redesign. */
-        night: "bg-ink text-white hover:bg-ink/90",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

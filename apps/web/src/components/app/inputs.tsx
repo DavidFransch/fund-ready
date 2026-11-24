@@ -25,7 +25,7 @@ export function centsToText(cents: number): string {
 
 const field = "h-12 w-full min-w-0 rounded-xl border border-input-border bg-page px-3.5 outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/20";
 
-export function MoneyInput({ label, value, onChange, hint }: { label: string; value: string; onChange: (v: string) => void; hint?: string; /** @deprecated shim */ big?: boolean }) {
+export function MoneyInput({ label, value, onChange, hint }: { label: string; value: string; onChange: (v: string) => void; hint?: string }) {
   const id = useId();
   const invalid = value.trim() !== "" && parseRand(value) === null;
   return (
@@ -222,7 +222,3 @@ export function Stepper({ value, onChange, min = 0, label, variant = "pill" }: {
   );
 }
 
-/** @deprecated Temporary shim while screens move to Chips/ChoiceTiles. Removed at the end of the v2 redesign. */
-export function Choices<T extends string>(props: { label: string; options: readonly Choice<T>[]; value: T | null; onChange: (v: T) => void; columns?: number }) {
-  return <Chips {...props} />;
-}

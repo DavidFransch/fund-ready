@@ -93,6 +93,7 @@ function ConfirmSheet({ pending, onCancel, onConfirm }: { pending: Pending | nul
       <SheetContent
         side="bottom"
         showCloseButton={false}
+        onOpenAutoFocus={(e) => e.preventDefault()}
         className="mx-auto max-h-[92dvh] max-w-[440px] gap-4 overflow-y-auto rounded-t-[28px] border-0 px-5 pt-2.5 pb-6 shadow-[0_-8px_32px_rgba(12,26,20,0.12)]"
       >
         <span aria-hidden className="h-1 w-10 self-center rounded-sm bg-input-border" />

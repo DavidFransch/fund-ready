@@ -24,7 +24,7 @@ export function DemoMenu() {
       <button type="button" aria-label="Menu" onClick={() => setOpen(true)} className="flex size-11 shrink-0 items-center justify-center rounded-full bg-panel hover:bg-panel-strong">
         <Menu className="size-5" strokeWidth={STROKE} aria-hidden />
       </button>
-      <SheetContent side="bottom" showCloseButton={false} className="mx-auto max-w-[440px] gap-3 rounded-t-[28px] border-0 px-5 pt-2.5 pb-6">
+      <SheetContent side="bottom" showCloseButton={false} onOpenAutoFocus={(e) => e.preventDefault()} className="mx-auto max-w-[440px] gap-3 rounded-t-[28px] border-0 px-5 pt-2.5 pb-6">
         <span aria-hidden className="h-1 w-10 self-center rounded-sm bg-input-border" />
         <SheetHeader className="gap-1 p-0">
           <SheetTitle className="text-[22px] font-semibold tracking-[-0.02em]">Menu</SheetTitle>

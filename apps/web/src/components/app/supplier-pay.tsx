@@ -1,65 +1,64 @@
 "use client";
 
+import type { Command } from "@app/ledger";
+import { positions } from "@app/ledger";
 import { useState } from "react";
 import { newId } from "@/books/ids";
 import { suppliers } from "@/books/selectors";
 import type { BooksSnapshot } from "@/books/store";
 import { Button } from "@/components/ui/button";
 import { money } from "@/lib/format";
-import { Card } from "./screen";
-import { centsToText, Choices, MoneyInput, parseRand } from "./inputs";
-import type { Command } from "@app/ledger";
+import { centsToText, ChoiceTiles, MoneyInput, parseRand } from "./inputs";
+import { Panel } from "./screen";
 
-/** Pay a supplier what you owe them, from petty cash or the bank. */
-export function SupplierPayForm({ snapshot, initial, onCheck }: { snapshot: BooksSnapshot; initial?: string; onCheck: (cmd: Command) => void }) {
+/** Pay a supplier what you owe them, from petty cash or the bank. Returns the form body and its footer button. */
+export function useSupplierPayForm(snapshot: BooksSnapshot, onCheck: (cmd: Command) => void) {
   const owed = suppliers(snapshot);
-  const [supplier, setSupplier] = useState<string | null>(initial ?? owed[0]?.supplier ?? null);
+  const pos = positions(snapshot.book.entries);
+  const [supplier, setSupplier] = useState<string | null>(owed[0]?.supplier ?? null);
   const [amountText, setAmountText] = useState<string | null>(null);
   const [from, setFrom] = useState<"cash" | "bank" | null>(null);
   const balance = owed.find((o) => o.supplier === supplier)?.amount ?? 0;
   const shown = amountText ?? (balance ? centsToText(balance) : "");
   const amount = parseRand(shown);
+  const missing = !owed.length ? "Nothing to pay" : !supplier ? "Choose who you are paying" : !amount ? "Type how much you are paying" : !from ? "Choose where the money comes from" : null;
 
-  if (!owed.length) {
-    return <Card className="text-[15px] text-ink-muted">You don&apos;t owe any suppliers right now.</Card>;
-  }
-  const missing = !supplier ? "Choose who you are paying" : !amount ? "Type how much you are paying" : !from ? "Choose where the money comes from" : null;
-
-  return (
+  const body = !owed.length ? (
+    <Panel className="px-4 py-5 text-center text-[15px] text-ink-muted">You don&apos;t owe any suppliers right now.</Panel>
+  ) : (
     <>
-      <Card className="flex flex-col gap-4">
-        <Choices
-          label="Who are you paying?"
-          options={owed.map((o) => ({ value: o.supplier, label: o.supplier, hint: `you owe ${money(o.amount)}` }))}
-          value={supplier}
-          onChange={(v) => {
-            setSupplier(v);
-            setAmountText(null);
-          }}
-          columns={1}
-        />
-        <MoneyInput label="How much" value={shown} onChange={setAmountText} big />
-        <Choices
-          label="Where does the money come from?"
-          options={[
-            { value: "cash", label: "Petty cash" },
-            { value: "bank", label: "Bank" },
-          ]}
-          value={from}
-          onChange={setFrom}
-          columns={2}
-        />
-      </Card>
-      <div className="mt-auto flex flex-col gap-1.5 pt-2">
-        {missing && <p className="text-center text-sm text-ink-muted">{missing}</p>}
-        <Button
-          size="primary"
-          disabled={!!missing}
-          onClick={() => supplier && amount && from && onCheck({ kind: "payment_made", id: newId(), date: snapshot.today, amount, from, supplier })}
-        >
-          Check and save
-        </Button>
-      </div>
+      <ChoiceTiles
+        label="Who are you paying?"
+        options={owed.map((o) => ({ value: o.supplier, label: o.supplier, hint: `You owe ${money(o.amount)}` }))}
+        value={supplier}
+        onChange={(v) => {
+          setSupplier(v);
+          setAmountText(null);
+        }}
+      />
+      <MoneyInput label="How much" value={shown} onChange={setAmountText} />
+      <ChoiceTiles
+        label="Where does the money come from?"
+        options={[
+          { value: "cash", label: "Petty cash", hint: `${money(pos.cashBox)} available` },
+          { value: "bank", label: "Bank", hint: `${money(pos.bank)} available` },
+        ]}
+        value={from}
+        onChange={setFrom}
+      />
     </>
   );
+  const footer = (
+    <>
+      {missing && owed.length > 0 && <p className="text-center text-[13px] text-ink-muted">{missing}</p>}
+      <Button
+        size="primary"
+        disabled={!!missing}
+        onClick={() => supplier && amount && from && onCheck({ kind: "payment_made", id: newId(), date: snapshot.today, amount, from, supplier })}
+      >
+        Review payment
+      </Button>
+    </>
+  );
+  return { body, footer };
 }

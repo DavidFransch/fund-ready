@@ -21,6 +21,18 @@ interface Pending {
   rows: Outcome[];
   summary: string;
   save: string;
+  toast?: SavedToast;
+}
+
+/** Overrides for one action: the save button's wording and the toast after saving. */
+export interface CheckOptions {
+  saveLabel?: string;
+  toast?: SavedToast;
+}
+
+interface SavedToast {
+  title: string;
+  description: string;
 }
 
 function supplierOf(cmd: Command): string | undefined {
@@ -38,7 +50,7 @@ export function useConfirmedAction({ after = "/" }: { after?: string | null } = 
   const router = useRouter();
   const [pending, setPending] = useState<Pending | null>(null);
 
-  function check(cmd: Command) {
+  function check(cmd: Command, opts: CheckOptions = {}) {
     if (!snapshot) return;
     const p = preview(cmd);
     if (!p.ok) {
@@ -53,7 +65,8 @@ export function useConfirmedAction({ after = "/" }: { after?: string | null } = 
       entry: p.result.entry,
       rows: outcomes(cmd, p.result.entry, snapshot.book, { cashBox: pos.cashBox, bank: pos.bank, owedToSupplier }),
       summary: summaryLine(cmd, snapshot.book),
-      save: saveLabel(cmd),
+      save: opts.saveLabel ?? saveLabel(cmd),
+      toast: opts.toast,
     });
   }
 
@@ -66,10 +79,15 @@ export function useConfirmedAction({ after = "/" }: { after?: string | null } = 
       return;
     }
     const id = pending.cmd.id;
-    toast.success("Saved", {
-      description: r.result.entry ? "Your books are up to date." : "Nothing needed changing.",
-      ...(r.result.entry ? { action: { label: "See it in the books", onClick: () => router.push(`/accountant?entry=${id}`) } } : {}),
-    });
+    if (pending.toast) {
+      // A custom message is longer: no action button beside it (it squeezes the text on a phone), and time to read it.
+      toast.success(pending.toast.title, { description: pending.toast.description, duration: 8000 });
+    } else {
+      toast.success("Saved", {
+        description: r.result.entry ? "Your books are up to date." : "Nothing needed changing.",
+        ...(r.result.entry ? { action: { label: "See it in the books", onClick: () => router.push(`/accountant?entry=${id}`) } } : {}),
+      });
+    }
     if (after) router.push(after);
   }
 

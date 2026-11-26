@@ -27,6 +27,7 @@ export function InvoiceForm() {
   const [lines, setLines] = useState<Line[]>([]);
   const [editing, setEditing] = useState<string | null>(null);
   const [customer, setCustomer] = useState("");
+  const [email, setEmail] = useState("");
 
   const rows = useMemo(() => (snapshot ? stockRows(snapshot) : []), [snapshot]);
   const invoiceNumber = useMemo(() => {
@@ -46,13 +47,17 @@ export function InvoiceForm() {
   const total = priced.reduce((t, l) => t + l.total, 0);
   const units = priced.reduce((t, l) => t + l.qty, 0);
   const unpriced = priced.find((l) => !l.price);
+  const sendTo = email.trim();
+  const badEmail = sendTo !== "" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sendTo);
   const missing = !priced.length
     ? "Add what you are invoicing"
     : unpriced
       ? `Type the price for ${unpriced.item.name}`
       : !customer.trim()
         ? "Say who will pay"
-        : null;
+        : badEmail
+          ? "Check the email address"
+          : null;
 
   const cmd: Command | null =
     priced.length && !unpriced
@@ -87,11 +92,25 @@ export function InvoiceForm() {
           cancelHref="/"
           label="Review invoice"
           disabled={!!missing}
-          onClick={() => cmd && !missing && check({ ...cmd, id: newId() } as Command)}
+          onClick={() =>
+            cmd &&
+            !missing &&
+            check(
+              { ...cmd, id: newId() } as Command,
+              sendTo
+                ? {
+                    saveLabel: "Save and send invoice",
+                    // Sending isn't built yet: show what it will look like, and say so.
+                    toast: { title: `Invoice ${invoiceNumber} sent`, description: `To ${sendTo}. Email is coming soon: nothing was sent yet.` },
+                  }
+                : {},
+            )
+          }
         />
       }
     >
       <TextInput label="Who will pay?" value={customer} onChange={setCustomer} placeholder="Customer name" />
+      <TextInput label="Customer email" type="email" value={email} onChange={setEmail} placeholder="name@example.co.za" hint="Optional. We'll email them the invoice." />
 
       {priced.length > 0 && (
         <>

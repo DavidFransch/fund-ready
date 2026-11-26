@@ -51,7 +51,24 @@ export function MoneyInput({ label, value, onChange, hint }: { label: string; va
   );
 }
 
-export function TextInput({ label, value, onChange, placeholder, list }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; list?: string[] }) {
+export function TextInput({
+  label,
+  value,
+  onChange,
+  placeholder,
+  list,
+  type = "text",
+  hint,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  list?: string[];
+  type?: "text" | "email";
+  /** Shown under the field, e.g. why it's optional. */
+  hint?: string;
+}) {
   const id = useId();
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
@@ -64,9 +81,18 @@ export function TextInput({ label, value, onChange, placeholder, list }: { label
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         list={list ? `${id}-list` : undefined}
+        type={type}
+        inputMode={type === "email" ? "email" : undefined}
+        autoCapitalize={type === "email" ? "none" : undefined}
         autoComplete="off"
+        aria-describedby={hint ? `${id}-hint` : undefined}
         className={cn(field, "text-[15px] placeholder:text-ink-faint")}
       />
+      {hint && (
+        <span id={`${id}-hint`} className="px-1 text-[13px] text-ink-muted">
+          {hint}
+        </span>
+      )}
       {list && (
         <datalist id={`${id}-list`}>
           {list.map((s) => (

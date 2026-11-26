@@ -31,7 +31,8 @@ export function SectionHeader({ title, subtitle, action }: { title: string; subt
   return (
     <div className="flex flex-wrap items-end justify-between gap-3">
       <div className="flex flex-col gap-1">
-        <h1 className="text-[28px] font-semibold">{title}</h1>
+        {/* On a phone the header above already names the section. */}
+        <h1 className="sr-only text-[28px] font-semibold lg:not-sr-only">{title}</h1>
         <span className="text-sm text-ink-muted">{subtitle}</span>
       </div>
       {action}

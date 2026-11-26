@@ -1,7 +1,7 @@
 "use client";
 
-import { SellForm } from "@/components/app/sell-form";
+import { InvoiceForm } from "@/components/app/invoice-form";
 
 export default function InvoicePage() {
-  return <SellForm invoice />;
+  return <InvoiceForm />;
 }

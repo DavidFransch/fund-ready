@@ -20,8 +20,8 @@ const METHODS: { value: PaymentMethod; label: string }[] = [
   { value: "credit", label: "Later" },
 ];
 
-/** "New sale", or an invoice when the customer pays later. */
-export function SellForm({ invoice = false }: { invoice?: boolean }) {
+/** "New sale". Invoices for several items live in InvoiceForm. */
+export function SellForm() {
   const { snapshot, check, sheet } = useConfirmedAction();
   const { preview } = useBooks();
   const [itemId, setItemId] = useState<string | null>(null);
@@ -29,14 +29,10 @@ export function SellForm({ invoice = false }: { invoice?: boolean }) {
   const [qty, setQty] = useState(1);
   const [priceText, setPriceText] = useState<string | null>(null);
   const [editPrice, setEditPrice] = useState(false);
-  const [method, setMethod] = useState<PaymentMethod | null>(invoice ? "credit" : null);
+  const [method, setMethod] = useState<PaymentMethod | null>(null);
   const [customer, setCustomer] = useState("");
 
   const rows = useMemo(() => (snapshot ? stockRows(snapshot) : []), [snapshot]);
-  const invoiceNumber = useMemo(() => {
-    const n = snapshot?.commands.filter((c) => c.kind === "sale" && c.invoiceNumber).length ?? 0;
-    return `INV-${String(n + 1).padStart(4, "0")}`;
-  }, [snapshot]);
   if (!snapshot) return <Loading />;
 
   const item = rows.find((r) => r.id === itemId);
@@ -63,7 +59,6 @@ export function SellForm({ invoice = false }: { invoice?: boolean }) {
           paidWith: method ?? "cash",
           lines: [{ itemId: item.id, description: item.name, qty, unitPrice: price }],
           ...(customer.trim() ? { customer: customer.trim() } : method === "credit" ? { customer: "Customer" } : {}),
-          ...(invoice ? { invoiceNumber } : {}),
         }
       : null;
   const p = cmd ? preview(cmd) : null;
@@ -81,14 +76,14 @@ export function SellForm({ invoice = false }: { invoice?: boolean }) {
 
   return (
     <Screen
-      title={invoice ? `Invoice ${invoiceNumber}` : "New sale"}
+      title="New sale"
       back="/"
       width="form"
       footer={
         <FormActions
           hint={missing}
           cancelHref="/"
-          label={invoice ? "Review invoice" : "Review sale"}
+          label="Review sale"
           disabled={!!missing}
           onClick={() => cmd && !missing && check({ ...cmd, id: newId() } as Command)}
         />
@@ -134,8 +129,8 @@ export function SellForm({ invoice = false }: { invoice?: boolean }) {
         />
       )}
 
-      {!invoice && <Chips label="Paid with" options={METHODS} value={method} onChange={setMethod} columns={4} />}
-      {(invoice || method === "credit") && <TextInput label="Who will pay?" value={customer} onChange={setCustomer} placeholder="Customer name" />}
+      <Chips label="Paid with" options={METHODS} value={method} onChange={setMethod} columns={4} />
+      {method === "credit" && <TextInput label="Who will pay?" value={customer} onChange={setCustomer} placeholder="Customer name" />}
 
       {item && !picking && (
         <Panel aria-label="What this sale does" className="flex flex-col">

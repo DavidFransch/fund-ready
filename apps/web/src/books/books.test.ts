@@ -1,4 +1,5 @@
-import { ACC, netBalances, trialBalance, balanceSheet, totalStockValue, positions } from "@app/ledger";
+import { ACC, netBalances, trialBalance, balanceSheet, totalStockValue, positions, type Command } from "@app/ledger";
+import { effectOn, summaryLine } from "./describe";
 import { describe, expect, it } from "vitest";
 import { periodRange, weekStart } from "./dates";
 import { generateSampleBusiness, HERO_ITEM, HERO_QTY, SAMPLE_ITEMS } from "./seed";
@@ -59,5 +60,26 @@ describe("periods", () => {
     expect(periodRange("week", "2026-11-26", -1)).toMatchObject({ from: "2026-11-16", to: "2026-11-22", label: "Last week" });
     expect(periodRange("month", "2026-11-26", -1)).toMatchObject({ from: "2026-10-01", to: "2026-10-31", label: "Last month" });
     expect(periodRange("day", "2026-11-26", 0)).toMatchObject({ from: "2026-11-26", label: "Today" });
+  });
+});
+
+describe("invoice with several items", () => {
+  const today = "2026-11-30";
+  const { book } = generateSampleBusiness(today);
+  const lines = SAMPLE_ITEMS.map((i) => ({ itemId: i.id, description: i.name, qty: 1, unitPrice: i.salePrice }));
+  const total = lines.reduce((t, l) => t + l.unitPrice, 0);
+  const before = SAMPLE_ITEMS.map((i) => book.level(i.id).qty);
+  const cmd: Command = { kind: "sale", id: "inv-all", date: today, paidWith: "credit", customer: "Lwazi", invoiceNumber: "INV-0001", lines };
+  const { entry } = book.execute(cmd);
+
+  it("posts every line to debtors and revenue, and takes each item out of stock", () => {
+    expect(effectOn(entry, ACC.debtors)).toBe(total);
+    expect(-effectOn(entry, ACC.sales)).toBe(total);
+    SAMPLE_ITEMS.forEach((i, n) => expect(book.level(i.id).qty).toBe(before[n]! - 1));
+    expect(trialBalance(book.entries).balanced).toBe(true);
+  });
+
+  it("is described as several items", () => {
+    expect(summaryLine(cmd, book)).toBe(`${SAMPLE_ITEMS.length} items to Lwazi, paid later`);
   });
 });

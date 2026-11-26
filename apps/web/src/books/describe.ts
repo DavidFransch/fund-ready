@@ -222,7 +222,7 @@ export function summaryLine(cmd: Command, book: Book): string {
   switch (cmd.kind) {
     case "sale": {
       const first = cmd.lines[0]!;
-      const what = `${first.qty} × ${first.itemId ? itemName(book, first.itemId) : first.description}`;
+      const what = cmd.lines.length === 1 ? `${first.qty} × ${first.itemId ? itemName(book, first.itemId) : first.description}` : `${cmd.lines.length} items`;
       return cmd.paidWith === "credit" ? `${what} to ${cmd.customer}, paid later` : `${what}, paid by ${METHOD_LABEL[cmd.paidWith].toLowerCase()}`;
     }
     case "expense": {

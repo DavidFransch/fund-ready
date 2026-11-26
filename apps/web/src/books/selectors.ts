@@ -6,6 +6,7 @@ import {
   netBalances,
   positions,
   supplierBalances,
+  times,
   unitCost,
   type Command,
   type IsoDate,
@@ -90,6 +91,10 @@ export interface ActivityRow {
   isUser: boolean;
 }
 
+function saleTotal(cmd: Extract<Command, { kind: "sale" }>): number {
+  return cmd.lines.reduce((t, l) => t + times(l.unitPrice, l.qty), 0);
+}
+
 function cashNet(e: JournalEntry): number {
   return e.lines.reduce((t, l) => (l.account === ACC.cashBox || l.account === ACC.bank ? t + l.debit - l.credit : t), 0);
 }
@@ -111,7 +116,8 @@ export function activity(s: BooksSnapshot, opts: { limit?: number; date?: IsoDat
       time: s.times.get(e.id) ?? "",
       title: text.title,
       detail: text.detail,
-      amount: direction === "none" || direction === "move" ? entryTotal(e) : Math.abs(net),
+      // An invoice moves no money, and its debits include cost of sales, so show what was sold.
+      amount: cmd?.kind === "sale" ? saleTotal(cmd) : direction === "none" || direction === "move" ? entryTotal(e) : Math.abs(net),
       direction,
       isUser: s.userCommandIds.has(e.id),
     };

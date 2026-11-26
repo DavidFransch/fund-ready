@@ -1,12 +1,21 @@
 "use client";
 
 import { useConfirmedAction } from "@/components/app/confirm";
+import { FreshOnEachVisit } from "@/components/app/fresh";
 import { Loading, Screen } from "@/components/app/screen";
 import { useSupplierPayForm } from "@/components/app/supplier-pay";
 import type { BooksSnapshot } from "@/books/store";
 import type { Command } from "@app/ledger";
 
 export default function SuppliersPage() {
+  return (
+    <FreshOnEachVisit>
+      <SuppliersForm />
+    </FreshOnEachVisit>
+  );
+}
+
+function SuppliersForm() {
   const { snapshot, check, sheet } = useConfirmedAction();
   if (!snapshot) return <Loading />;
   return <SupplierScreen snapshot={snapshot} check={check} sheet={sheet} />;

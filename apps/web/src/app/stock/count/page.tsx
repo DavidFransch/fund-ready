@@ -7,6 +7,7 @@ import { newId } from "@/books/ids";
 import { stockRows } from "@/books/selectors";
 import { useBooks } from "@/books/store";
 import { useConfirmedAction } from "@/components/app/confirm";
+import { FreshOnEachVisit } from "@/components/app/fresh";
 import { RadioPills, Stepper } from "@/components/app/inputs";
 import { Divider, FormActions, Loading, NightCard, Panel, Screen } from "@/components/app/screen";
 import { money } from "@/lib/format";
@@ -19,6 +20,14 @@ const REASONS = [
 ];
 
 export default function CountPage() {
+  return (
+    <FreshOnEachVisit>
+      <CountForm />
+    </FreshOnEachVisit>
+  );
+}
+
+function CountForm() {
   const { check, sheet } = useConfirmedAction({ after: "/stock" });
   const { snapshot, preview } = useBooks();
   const [counted, setCounted] = useState<Record<string, number>>({});

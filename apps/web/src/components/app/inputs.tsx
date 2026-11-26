@@ -236,7 +236,7 @@ export function RadioPills<T extends string>({ label, options, value, onChange }
 }
 
 /** − value + with 44px buttons. "pill": white pill (on a grey panel). "box": bordered field. */
-export function Stepper({ value, onChange, min = 0, label, variant = "pill" }: { value: number; onChange: (v: number) => void; min?: number; label: string; variant?: "pill" | "box" }) {
+export function Stepper({ value, onChange, min = 0, max, label, variant = "pill" }: { value: number; onChange: (v: number) => void; min?: number; max?: number; label: string; variant?: "pill" | "box" }) {
   const btn = "flex size-11 shrink-0 items-center justify-center rounded-full disabled:text-ink-faint";
   return (
     <div className={cn("flex items-center", variant === "pill" ? "h-11 rounded-full bg-page" : "h-12 justify-between rounded-xl border border-input-border bg-page px-0.5")}>
@@ -246,7 +246,7 @@ export function Stepper({ value, onChange, min = 0, label, variant = "pill" }: {
       <span className={cn("text-center font-semibold", variant === "pill" ? "min-w-7 text-[17px]" : "text-lg")} aria-live="polite" aria-label={`${value} ${label}`}>
         {value}
       </span>
-      <button type="button" className={btn} aria-label={`One more ${label}`} onClick={() => onChange(value + 1)}>
+      <button type="button" className={btn} aria-label={`One more ${label}`} disabled={max !== undefined && value >= max} onClick={() => onChange(max === undefined ? value + 1 : Math.min(max, value + 1))}>
         <Plus className="size-5" strokeWidth={STROKE} aria-hidden />
       </button>
     </div>

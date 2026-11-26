@@ -17,8 +17,20 @@ export function ItemIcon({ id, className }: { id: string; className?: string }) 
   );
 }
 
-/** Choose one stock item from a grey panel of rows. */
-export function ItemPicker({ label, rows, onPick, detail }: { label: string; rows: StockRow[]; onPick: (id: string) => void; detail: (r: StockRow) => string }) {
+/** Choose one stock item from a grey panel of rows. `unavailable` greys out rows that can't be chosen, e.g. out of stock. */
+export function ItemPicker({
+  label,
+  rows,
+  onPick,
+  detail,
+  unavailable,
+}: {
+  label: string;
+  rows: StockRow[];
+  onPick: (id: string) => void;
+  detail: (r: StockRow) => string;
+  unavailable?: (r: StockRow) => boolean;
+}) {
   return (
     <div className="flex flex-col gap-2">
       <span className="px-1 text-[13px] font-medium text-ink-muted">{label}</span>
@@ -26,7 +38,12 @@ export function ItemPicker({ label, rows, onPick, detail }: { label: string; row
         {rows.map((r, i) => (
           <Fragment key={r.id}>
             {i > 0 && <Divider inset />}
-            <button type="button" onClick={() => onPick(r.id)} className="flex min-h-16 items-center gap-3 rounded-[18px] px-3.5 py-2.5 text-left hover:bg-panel-strong">
+            <button
+              type="button"
+              onClick={() => onPick(r.id)}
+              disabled={unavailable?.(r)}
+              className="flex min-h-16 items-center gap-3 rounded-[18px] px-3.5 py-2.5 text-left hover:bg-panel-strong disabled:opacity-50 disabled:hover:bg-transparent"
+            >
               <ItemIcon id={r.id} />
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="text-[15px] font-semibold">{r.name}</span>

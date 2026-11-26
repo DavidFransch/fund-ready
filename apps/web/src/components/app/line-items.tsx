@@ -41,6 +41,8 @@ export function useLineItems(rows: StockRow[]) {
     total: priced.reduce((t, l) => t + l.total, 0),
     units: priced.reduce((t, l) => t + l.qty, 0),
     unpriced: priced.find((l) => !l.price),
+    /** A line asking for more than is in stock (stock can change after the line was added). */
+    overStock: priced.find((l) => l.qty > l.item.qty),
     /** Lines for a sale command, once every line has a price. */
     saleLines: () => priced.map((l) => ({ itemId: l.item.id, description: l.item.name, qty: l.qty, unitPrice: l.price! })),
     add: (itemId: string) => setLines((ls) => [...ls, { itemId, qty: 1, priceText: null }]),
@@ -90,10 +92,10 @@ export function BasketLines({ basket, label, emptyLabel }: { basket: LineItems; 
                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                       <span className="truncate text-[15px] font-semibold">{l.item.name}</span>
                       <span className={short ? "text-[13px] font-medium text-negative" : "text-[13px] text-ink-muted"}>
-                        {short ? `Only ${l.item.qty} on record` : `${l.item.qty} in stock`}
+                        {short ? `Only ${l.item.qty} in stock` : l.qty === l.item.qty ? `That's all ${l.item.qty} in stock` : `${l.item.qty} in stock`}
                       </span>
                     </div>
-                    <Stepper value={l.qty} min={1} onChange={(qty) => update(l.itemId, { qty })} label={l.item.unit} />
+                    <Stepper value={l.qty} min={1} max={Math.max(1, l.item.qty)} onChange={(qty) => update(l.itemId, { qty })} label={l.item.unit} />
                   </div>
                   <div className="flex items-center gap-1 pl-[56px] text-[13px]">
                     <button
@@ -125,7 +127,8 @@ export function BasketLines({ basket, label, emptyLabel }: { basket: LineItems; 
         <ItemPicker
           label={priced.length ? "Add another item" : emptyLabel}
           rows={remaining}
-          detail={(r) => `${r.qty} in stock · sells for ${money(r.salePrice)}`}
+          detail={(r) => (r.qty > 0 ? `${r.qty} in stock · sells for ${money(r.salePrice)}` : "Out of stock · buy more before you sell it")}
+          unavailable={(r) => r.qty <= 0}
           onPick={add}
         />
       )}

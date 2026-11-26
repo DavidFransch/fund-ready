@@ -27,13 +27,15 @@ export function InvoiceForm() {
   }, [snapshot]);
   if (!snapshot) return <Loading />;
 
-  const { priced, unpriced } = basket;
+  const { priced, unpriced, overStock } = basket;
   const sendTo = email.trim();
   const badEmail = sendTo !== "" && !isEmail(sendTo);
   const missing = !priced.length
     ? "Add what you are invoicing"
     : unpriced
       ? `Type the price for ${unpriced.item.name}`
+      : overStock
+        ? `Only ${overStock.item.qty} ${overStock.item.name} in stock`
       : !customer.trim()
         ? "Say who will pay"
         : badEmail

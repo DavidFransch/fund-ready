@@ -32,7 +32,7 @@ export function SellForm() {
   const basket = useLineItems(rows);
   if (!snapshot) return <Loading />;
 
-  const { priced, unpriced, total } = basket;
+  const { priced, unpriced, overStock, total } = basket;
   const paidNow = method !== null && method !== "credit";
   // Receipts are for sales paid now; a pay-later sale is what an invoice is for.
   const sendTo = paidNow ? email.trim() : "";
@@ -41,6 +41,8 @@ export function SellForm() {
     ? "Choose what you sold"
     : unpriced
       ? `Type the price for ${unpriced.item.name}`
+      : overStock
+        ? `Only ${overStock.item.qty} ${overStock.item.name} in stock`
       : !method
         ? "Choose how they paid"
         : method === "credit" && !customer.trim()

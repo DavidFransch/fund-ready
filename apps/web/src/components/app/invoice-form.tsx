@@ -5,7 +5,7 @@ import { Wallet } from "lucide-react";
 import { useMemo, useState } from "react";
 import { effectOn } from "@/books/describe";
 import { newId } from "@/books/ids";
-import { stockRows } from "@/books/selectors";
+import { nextInvoiceNumber, stockRows } from "@/books/selectors";
 import { useBooks } from "@/books/store";
 import { useConfirmedAction } from "@/components/app/confirm";
 import { isEmail, TextInput } from "@/components/app/inputs";
@@ -21,11 +21,8 @@ export function InvoiceForm() {
 
   const rows = useMemo(() => (snapshot ? stockRows(snapshot) : []), [snapshot]);
   const basket = useLineItems(rows);
-  const invoiceNumber = useMemo(() => {
-    const n = snapshot?.commands.filter((c) => c.kind === "sale" && c.invoiceNumber).length ?? 0;
-    return `INV-${String(n + 1).padStart(4, "0")}`;
-  }, [snapshot]);
   if (!snapshot) return <Loading />;
+  const invoiceNumber = nextInvoiceNumber(snapshot);
 
   const { priced, unpriced, overStock } = basket;
   const sendTo = email.trim();

@@ -5,7 +5,7 @@ import { Wallet } from "lucide-react";
 import { useMemo, useState } from "react";
 import { effectOn } from "@/books/describe";
 import { newId } from "@/books/ids";
-import { stockRows } from "@/books/selectors";
+import { nextInvoiceNumber, stockRows } from "@/books/selectors";
 import { useBooks } from "@/books/store";
 import { useConfirmedAction } from "@/components/app/confirm";
 import { Chips, isEmail, TextInput } from "@/components/app/inputs";
@@ -20,7 +20,7 @@ const METHODS: { value: PaymentMethod; label: string }[] = [
   { value: "credit", label: "Later" },
 ];
 
-/** "New sale": one or more stock items, paid now or later. */
+/** "New sale": one or more stock items. Paid now gets an optional receipt; paid later becomes an invoice. */
 export function SellForm() {
   const { snapshot, check, sheet } = useConfirmedAction();
   const { preview } = useBooks();
@@ -34,8 +34,9 @@ export function SellForm() {
 
   const { priced, unpriced, overStock, total } = basket;
   const paidNow = method !== null && method !== "credit";
-  // Receipts are for sales paid now; a pay-later sale is what an invoice is for.
-  const sendTo = paidNow ? email.trim() : "";
+  // Paid now: a receipt. Paid later: the sale is an invoice, numbered like those from the Invoice screen.
+  const invoiceNumber = method === "credit" ? nextInvoiceNumber(snapshot) : null;
+  const sendTo = method ? email.trim() : "";
   const badEmail = sendTo !== "" && !isEmail(sendTo);
   const missing = !priced.length
     ? "Choose what you sold"
@@ -60,6 +61,7 @@ export function SellForm() {
           paidWith: method ?? "cash",
           lines: basket.saleLines(),
           ...(customer.trim() ? { customer: customer.trim() } : method === "credit" ? { customer: "Customer" } : {}),
+          ...(invoiceNumber ? { invoiceNumber } : {}),
         }
       : null;
   const p = cmd ? preview(cmd) : null;
@@ -69,9 +71,11 @@ export function SellForm() {
     method === "cash"
       ? `Cash goes into petty cash: ${money(cash)} → ${money(cash + total)}`
       : method === "card" || method === "eft"
-        ? `${method === "card" ? "Card" : "EFT"} money lands in the bank`
-        : method === "credit"
-          ? `Added to what ${customer.trim() || "the customer"} owes you`
+        ? method === "card"
+          ? "Card money lands in the bank"
+          : "EFT money is already in the bank. Not paid yet? Choose Later to send an invoice."
+        : invoiceNumber
+          ? `This becomes invoice ${invoiceNumber}, added to what ${customer.trim() || "the customer"} owes you`
           : null;
 
   return (
@@ -83,7 +87,7 @@ export function SellForm() {
         <FormActions
           hint={missing}
           cancelHref="/"
-          label="Review sale"
+          label={invoiceNumber ? "Review invoice" : "Review sale"}
           disabled={!!missing}
           onClick={() =>
             cmd &&
@@ -92,9 +96,9 @@ export function SellForm() {
               { ...cmd, id: newId() } as Command,
               sendTo
                 ? {
-                    saveLabel: "Save and send receipt",
+                    saveLabel: invoiceNumber ? "Save and send invoice" : "Save and send receipt",
                     // Sending isn't built yet: show what it will look like, and say so.
-                    toast: { title: "Receipt sent", description: `To ${sendTo}. Email is coming soon: nothing was sent yet.` },
+                    toast: { title: invoiceNumber ? `Invoice ${invoiceNumber} sent` : "Receipt sent", description: `To ${sendTo}. Email is coming soon: nothing was sent yet.` },
                   }
                 : {},
             )
@@ -108,6 +112,7 @@ export function SellForm() {
       <Chips label="Paid with" options={METHODS} value={method} onChange={setMethod} columns={4} />
       {method === "credit" && <TextInput label="Who will pay?" value={customer} onChange={setCustomer} placeholder="Customer name" />}
       {paidNow && <TextInput label="Email a receipt" type="email" value={email} onChange={setEmail} placeholder="name@example.co.za" hint="Optional. Leave it empty if they don't want one." />}
+      {invoiceNumber && <TextInput label="Email the invoice" type="email" value={email} onChange={setEmail} placeholder="name@example.co.za" hint="Optional. We'll email them the invoice." />}
 
       {priced.length > 0 && <BasketProfit basket={basket} cost={cost} noun="sale" />}
       {priced.length > 0 && moneyNote && <InfoStrip icon={Wallet}>{moneyNote}</InfoStrip>}

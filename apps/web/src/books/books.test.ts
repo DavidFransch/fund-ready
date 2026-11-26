@@ -1,5 +1,7 @@
 import { ACC, netBalances, trialBalance, balanceSheet, totalStockValue, positions, type Command } from "@app/ledger";
 import { effectOn, summaryLine } from "./describe";
+import { nextInvoiceNumber } from "./selectors";
+import type { BooksSnapshot } from "./store";
 import { describe, expect, it } from "vitest";
 import { periodRange, weekStart } from "./dates";
 import { generateSampleBusiness, HERO_ITEM, HERO_QTY, SAMPLE_ITEMS } from "./seed";
@@ -77,6 +79,11 @@ describe("invoice with several items", () => {
     expect(-effectOn(entry, ACC.sales)).toBe(total);
     SAMPLE_ITEMS.forEach((i, n) => expect(book.level(i.id).qty).toBe(before[n]! - 1));
     expect(trialBalance(book.entries).balanced).toBe(true);
+  });
+
+  it("moves the invoice numbering on, whichever screen made it", () => {
+    const commands = [cmd, { ...cmd, id: "sale-cash", paidWith: "cash", invoiceNumber: undefined } as Command];
+    expect(nextInvoiceNumber({ commands } as unknown as BooksSnapshot)).toBe("INV-0002");
   });
 
   it("is described as several items", () => {

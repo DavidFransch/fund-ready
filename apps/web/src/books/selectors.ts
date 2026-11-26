@@ -20,6 +20,12 @@ export function commandMap(s: BooksSnapshot): Map<string, Command> {
   return new Map(s.commands.map((c) => [c.id, c]));
 }
 
+/** The number the next invoice gets: INV-0001, INV-0002, … across Sell (paid later) and Invoice. */
+export function nextInvoiceNumber(s: BooksSnapshot): string {
+  const n = s.commands.filter((c) => c.kind === "sale" && c.invoiceNumber).length;
+  return `INV-${String(n + 1).padStart(4, "0")}`;
+}
+
 /** Entries in the order they happened (stable within a day). */
 export function chronological(entries: readonly JournalEntry[]): JournalEntry[] {
   return entries.map((e, i) => ({ e, i })).sort((a, b) => (a.e.date === b.e.date ? a.i - b.i : a.e.date < b.e.date ? -1 : 1)).map((x) => x.e);

@@ -19,6 +19,11 @@ export function parseRand(text: string): number | null {
 }
 
 /** Cents back into the plain text a user would type, e.g. 2200 -> "22.00". */
+/** Loose check that catches typos like "lwazi@" without rejecting real addresses. */
+export function isEmail(text: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text.trim());
+}
+
 export function centsToText(cents: number): string {
   return (cents / 100).toFixed(2);
 }

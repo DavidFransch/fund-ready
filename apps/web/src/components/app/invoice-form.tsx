@@ -8,7 +8,7 @@ import { newId } from "@/books/ids";
 import { stockRows } from "@/books/selectors";
 import { useBooks } from "@/books/store";
 import { useConfirmedAction } from "@/components/app/confirm";
-import { TextInput } from "@/components/app/inputs";
+import { isEmail, TextInput } from "@/components/app/inputs";
 import { BasketLines, BasketProfit, BasketTotal, useLineItems } from "@/components/app/line-items";
 import { FormActions, InfoStrip, Loading, Screen } from "@/components/app/screen";
 
@@ -29,7 +29,7 @@ export function InvoiceForm() {
 
   const { priced, unpriced } = basket;
   const sendTo = email.trim();
-  const badEmail = sendTo !== "" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sendTo);
+  const badEmail = sendTo !== "" && !isEmail(sendTo);
   const missing = !priced.length
     ? "Add what you are invoicing"
     : unpriced

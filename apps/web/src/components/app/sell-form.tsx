@@ -8,7 +8,7 @@ import { newId } from "@/books/ids";
 import { stockRows } from "@/books/selectors";
 import { useBooks } from "@/books/store";
 import { useConfirmedAction } from "@/components/app/confirm";
-import { Chips, TextInput } from "@/components/app/inputs";
+import { Chips, isEmail, TextInput } from "@/components/app/inputs";
 import { BasketLines, BasketProfit, BasketTotal, useLineItems } from "@/components/app/line-items";
 import { FormActions, InfoStrip, Loading, Screen } from "@/components/app/screen";
 import { money } from "@/lib/format";
@@ -26,12 +26,17 @@ export function SellForm() {
   const { preview } = useBooks();
   const [method, setMethod] = useState<PaymentMethod | null>(null);
   const [customer, setCustomer] = useState("");
+  const [email, setEmail] = useState("");
 
   const rows = useMemo(() => (snapshot ? stockRows(snapshot) : []), [snapshot]);
   const basket = useLineItems(rows);
   if (!snapshot) return <Loading />;
 
   const { priced, unpriced, total } = basket;
+  const paidNow = method !== null && method !== "credit";
+  // Receipts are for sales paid now; a pay-later sale is what an invoice is for.
+  const sendTo = paidNow ? email.trim() : "";
+  const badEmail = sendTo !== "" && !isEmail(sendTo);
   const missing = !priced.length
     ? "Choose what you sold"
     : unpriced
@@ -40,7 +45,9 @@ export function SellForm() {
         ? "Choose how they paid"
         : method === "credit" && !customer.trim()
           ? "Say who will pay later"
-          : null;
+          : badEmail
+            ? "Check the email address"
+            : null;
 
   const cmd: Command | null =
     priced.length && !unpriced
@@ -76,7 +83,20 @@ export function SellForm() {
           cancelHref="/"
           label="Review sale"
           disabled={!!missing}
-          onClick={() => cmd && !missing && check({ ...cmd, id: newId() } as Command)}
+          onClick={() =>
+            cmd &&
+            !missing &&
+            check(
+              { ...cmd, id: newId() } as Command,
+              sendTo
+                ? {
+                    saveLabel: "Save and send receipt",
+                    // Sending isn't built yet: show what it will look like, and say so.
+                    toast: { title: "Receipt sent", description: `To ${sendTo}. Email is coming soon: nothing was sent yet.` },
+                  }
+                : {},
+            )
+          }
         />
       }
     >
@@ -85,6 +105,7 @@ export function SellForm() {
 
       <Chips label="Paid with" options={METHODS} value={method} onChange={setMethod} columns={4} />
       {method === "credit" && <TextInput label="Who will pay?" value={customer} onChange={setCustomer} placeholder="Customer name" />}
+      {paidNow && <TextInput label="Email a receipt" type="email" value={email} onChange={setEmail} placeholder="name@example.co.za" hint="Optional. Leave it empty if they don't want one." />}
 
       {priced.length > 0 && <BasketProfit basket={basket} cost={cost} noun="sale" />}
       {priced.length > 0 && moneyNote && <InfoStrip icon={Wallet}>{moneyNote}</InfoStrip>}

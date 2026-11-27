@@ -129,6 +129,8 @@ export interface OwnerContribution {
   date: IsoDate;
   amount: Cents;
   into: MoneyPlace;
+  /** "loan": the owner lends it to the business (2100 Shareholder loan); default is capital (3000). */
+  as?: "capital" | "loan";
 }
 
 /** Money in that isn't from selling, e.g. interest from the bank. */
@@ -482,9 +484,9 @@ function postContribution(cmd: OwnerContribution): PostingResult {
   const entry = makeEntry({
     id: cmd.id,
     date: cmd.date,
-    memo: "Owner put money into the business",
+    memo: cmd.as === "loan" ? "Owner lent the business money" : "Owner put money into the business",
     source: { type: "owner_contribution" },
-    lines: [dr(PLACE_ACCOUNT[cmd.into], cmd.amount), cr(ACC.capital, cmd.amount)],
+    lines: [dr(PLACE_ACCOUNT[cmd.into], cmd.amount), cr(cmd.as === "loan" ? ACC.ownerLoan : ACC.capital, cmd.amount)],
   });
   return { entry, movements: [] };
 }

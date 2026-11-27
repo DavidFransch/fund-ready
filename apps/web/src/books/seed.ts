@@ -170,6 +170,8 @@ export function generateSampleBusiness(today: string): SampleBusiness {
     bank: rand(12000),
     stock: SAMPLE_ITEMS.map((i) => ({ itemId: i.id, qty: (i.reorderLevel ?? 5) * 2, cost: i.cost * (i.reorderLevel ?? 5) * 2 })),
   });
+  // Thandeka lent the shop money to get going, so her drawings repay her rather than leave her owing it.
+  add({ kind: "owner_contribution", date: start, amount: rand(15000), into: "bank", as: "loan" });
 
   for (let d = start; d <= end; d = addDays(d, 1)) {
     const dow = dayOfWeek(d);

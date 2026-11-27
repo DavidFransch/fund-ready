@@ -173,6 +173,12 @@ describe("posting commands", () => {
     expect(r.entry!.lines.some((l) => l.account === ACC.costOfSales && l.debit > 0)).toBe(true);
   });
 
+  it("records money the owner lends the business on the shareholder loan, not as capital", () => {
+    const book = nomsasBook();
+    const r = book.execute({ kind: "owner_contribution", id: "ln1", date: "2026-09-01", amount: rand(15000), into: "bank", as: "loan" });
+    expect(r.entry!.lines).toEqual(expect.arrayContaining([expect.objectContaining({ account: ACC.bank, debit: rand(15000) }), expect.objectContaining({ account: ACC.ownerLoan, credit: rand(15000) })]));
+  });
+
   it("takes owner drawings against the shareholder loan", () => {
     const book = nomsasBook();
     const r = book.execute({ kind: "owner_drawing", id: "dr1", date: "2026-09-20", amount: rand(200), from: "cash" });

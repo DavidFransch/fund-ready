@@ -77,7 +77,7 @@ export function rowText(cmd: Command | undefined, book: Book, entry?: JournalEnt
     case "owner_drawing":
       return { title: "Owner's pay", detail: `Drawing · ${PAID_FROM_LABEL[cmd.from]}` };
     case "owner_contribution":
-      return { title: "Money put in", detail: `Owner · ${PAID_FROM_LABEL[cmd.into]}` };
+      return { title: cmd.as === "loan" ? "Loan from owner" : "Money put in", detail: `Owner · ${PAID_FROM_LABEL[cmd.into]}` };
     case "other_income":
       return { title: cmd.description || "Other money in", detail: `Other income · ${PAID_FROM_LABEL[cmd.into]}` };
     case "opening_balance":

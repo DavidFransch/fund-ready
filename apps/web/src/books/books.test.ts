@@ -34,6 +34,12 @@ describe("sample business", () => {
     expect(sample.commands.some((c) => c.kind === "expense" && c.category === "packaging")).toBe(true);
   });
 
+  it("starts with an owner's loan that her drawings never use up", () => {
+    const loan = -(netBalances(sample.book.entries).get(ACC.ownerLoan) ?? 0);
+    expect(loan).toBeGreaterThan(0);
+    expect(loan).toBeLessThan(15000_00);
+  });
+
   it("has one unpaid invoice, to the sample customer", () => {
     const invoices = sample.commands.filter((c) => c.kind === "sale" && c.paidWith === "credit");
     expect(invoices).toHaveLength(1);

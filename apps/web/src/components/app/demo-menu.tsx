@@ -1,12 +1,13 @@
 "use client";
 
-import { BookOpen, FileText, Menu, RotateCcw, Settings2 } from "lucide-react";
+import { BookOpen, FileText, Landmark, Menu, RotateCcw, Settings2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useBooks } from "@/books/store";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { useFeature } from "@/features";
 import { cn } from "@/lib/utils";
 import { DemoSettingsPanel } from "./demo-settings";
 import { SHEET_HANDLE, SHEET_OR_DIALOG } from "./sheet-style";
@@ -61,6 +62,7 @@ export function DemoMenu({ className }: { className?: string }) {
   const [open, setOpen] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [settings, setSettings] = useState(false);
+  const bank = useFeature("bankImport");
   const close = (o: boolean) => {
     setOpen(o);
     if (!o) {
@@ -85,6 +87,14 @@ export function DemoMenu({ className }: { className?: string }) {
             <BookOpen className="size-5" strokeWidth={STROKE} aria-hidden /> Accountant view
           </Link>
         </Button>
+        {bank && (
+          <Button asChild className={item}>
+            <Link href="/bank">
+              <Landmark className="size-5" strokeWidth={STROKE} aria-hidden /> Bank statement
+              <span className="ml-auto rounded-full bg-brand-tint px-2 py-0.5 text-xs font-semibold text-brand">Preview</span>
+            </Link>
+          </Button>
+        )}
         <Button asChild className={item}>
           <Link href="/invoice">
             <FileText className="size-5" strokeWidth={STROKE} aria-hidden /> Invoice a customer

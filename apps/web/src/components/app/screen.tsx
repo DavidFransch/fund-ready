@@ -1,9 +1,10 @@
 "use client";
 
-import { BookOpen, ChartLine, ChevronLeft, FileText, House, Package, Wallet, type LucideIcon } from "lucide-react";
+import { BookOpen, ChartLine, ChevronLeft, FileText, House, Landmark, Package, Wallet, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BUSINESS } from "@/books/seed";
+import { useFeature } from "@/features";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ResetDemoButton } from "./demo-menu";
@@ -53,6 +54,8 @@ export function BottomNav() {
 /** Desktop navigation (≥1024px): same style as the accountant view's sidebar. */
 export function AppSidebar() {
   const isActive = useActive();
+  const bank = useFeature("bankImport");
+  const path = usePathname();
   const item = "flex h-10 items-center gap-2.5 rounded-[10px] px-2.5 text-sm";
   return (
     <aside className="sticky top-0 hidden h-dvh w-[248px] shrink-0 flex-col gap-5 border-r border-hairline px-3.5 py-5 lg:flex">
@@ -79,6 +82,17 @@ export function AppSidebar() {
             </Link>
           );
         })}
+        {bank && (
+          <Link
+            href="/bank"
+            aria-current={path.startsWith("/bank") ? "page" : undefined}
+            className={cn(item, path.startsWith("/bank") ? "bg-panel-strong font-semibold text-ink" : "font-medium text-[#3E4642] hover:bg-panel")}
+          >
+            <Landmark className="size-[18px]" strokeWidth={STROKE} aria-hidden />
+            <span className="whitespace-nowrap">Bank statement</span>
+            <span className="ml-auto rounded-full bg-brand-tint px-1.5 py-0.5 text-[11px] font-semibold text-brand">Preview</span>
+          </Link>
+        )}
       </nav>
       <div className="mt-auto flex flex-col gap-0.5">
         <Link href="/invoice" className={cn(item, "font-medium text-[#3E4642] hover:bg-panel")}>

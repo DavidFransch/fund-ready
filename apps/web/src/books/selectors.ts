@@ -204,6 +204,38 @@ export function suppliers(s: BooksSnapshot) {
   return supplierBalances(s.commands).filter((b) => b.amount > 0);
 }
 
+export interface OpenInvoice {
+  number: string;
+  customer: string;
+  amount: number;
+}
+
+/** Invoices not yet paid, oldest first. */
+export function openInvoices(s: BooksSnapshot): OpenInvoice[] {
+  const paid = new Map<string, number>();
+  for (const c of s.commands) if (c.kind === "payment_received" && c.invoiceNumber) paid.set(c.invoiceNumber, (paid.get(c.invoiceNumber) ?? 0) + c.amount);
+  return s.commands.flatMap((c) => {
+    if (c.kind !== "sale" || c.paidWith !== "credit" || !c.invoiceNumber) return [];
+    const amount = c.lines.reduce((t, l) => t + l.qty * l.unitPrice, 0) - (paid.get(c.invoiceNumber) ?? 0);
+    return amount > 0 ? [{ number: c.invoiceNumber, customer: c.customer ?? "Customer", amount }] : [];
+  });
+}
+
+/** What the business owes the owner on the shareholder loan (negative: the owner owes the business). */
+export function ownerLoanBalance(s: BooksSnapshot): number {
+  // netBalances is debit minus credit; the loan is owed to the owner when it is in credit.
+  return -(netBalances(s.book.entries).get(ACC.ownerLoan) ?? 0);
+}
+
+/** Customers who owe money, with their open invoices, biggest balance first. */
+export function customerBalances(s: BooksSnapshot): { customer: string; amount: number; invoices: OpenInvoice[] }[] {
+  const by = new Map<string, OpenInvoice[]>();
+  for (const inv of openInvoices(s)) by.set(inv.customer, [...(by.get(inv.customer) ?? []), inv]);
+  return [...by]
+    .map(([customer, invoices]) => ({ customer, invoices, amount: invoices.reduce((t, i) => t + i.amount, 0) }))
+    .sort((a, b) => b.amount - a.amount);
+}
+
 /** Supplier names used before, for suggestions. */
 export function knownSuppliers(s: BooksSnapshot): string[] {
   const names = new Map<string, string>();

@@ -1,6 +1,7 @@
 import type { Command } from "@app/ledger";
 import { describe, expect, it } from "vitest";
-import { defaultChoice, extraCommand, FEE, INTEREST, openInvoices, sampleStatement } from "./bank";
+import { defaultChoice, extraCommand, FEE, INTEREST, sampleStatement } from "./bank";
+import { openInvoices } from "./selectors";
 import { generateSampleBusiness, SAMPLE_CUSTOMER } from "./seed";
 import type { BooksSnapshot } from "./store";
 

@@ -1,6 +1,6 @@
 import { ACC, addDays, type Command, type ExpenseCategoryId, type IsoDate, type JournalEntry } from "@app/ledger";
 import { CATEGORY_LABEL, rowText } from "./describe";
-import { commandMap } from "./selectors";
+import { commandMap, openInvoices, type OpenInvoice } from "./selectors";
 import type { BooksSnapshot } from "./store";
 
 /**
@@ -48,11 +48,6 @@ export interface SampleStatement {
   booksBalance: number;
 }
 
-export interface OpenInvoice {
-  number: string;
-  customer: string;
-  amount: number;
-}
 
 /** What the books call an entry, e.g. "4 items · Sale" or "Banked · Transfer". */
 function inBooks(cmd: Command | undefined, s: BooksSnapshot, e?: JournalEntry): string {
@@ -64,16 +59,6 @@ function inBooks(cmd: Command | undefined, s: BooksSnapshot, e?: JournalEntry): 
 const bankEffect = (e: JournalEntry) => e.lines.reduce((t, l) => (l.account === ACC.bank ? t + l.debit - l.credit : t), 0);
 const extraId = (anchor: IsoDate, kind: ExtraKind) => `bank-${anchor}-${kind}`;
 
-/** Invoices not yet paid, oldest first. */
-export function openInvoices(s: BooksSnapshot): OpenInvoice[] {
-  const paid = new Map<string, number>();
-  for (const c of s.commands) if (c.kind === "payment_received" && c.invoiceNumber) paid.set(c.invoiceNumber, (paid.get(c.invoiceNumber) ?? 0) + c.amount);
-  return s.commands.flatMap((c) => {
-    if (c.kind !== "sale" || c.paidWith !== "credit" || !c.invoiceNumber) return [];
-    const amount = c.lines.reduce((t, l) => t + l.qty * l.unitPrice, 0) - (paid.get(c.invoiceNumber) ?? 0);
-    return amount > 0 ? [{ number: c.invoiceNumber, customer: c.customer ?? "Customer", amount }] : [];
-  });
-}
 
 /** How a books entry would read on a bank statement. */
 function statementText(cmd: Command | undefined, e: JournalEntry): string {

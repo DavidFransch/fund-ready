@@ -14,7 +14,7 @@ import { DemoSettingsButton } from "./demo-settings";
 export const STROKE = 1.75;
 
 const NAV: { href: string; label: string; icon: LucideIcon; also?: string[] }[] = [
-  { href: "/", label: "Home", icon: House, also: ["/sell", "/pay", "/expense", "/invoice", "/suppliers"] },
+  { href: "/", label: "Home", icon: House, also: ["/sell", "/pay", "/expense", "/invoice", "/suppliers", "/customers"] },
   { href: "/stock", label: "Stock", icon: Package },
   { href: "/petty-cash", label: "Petty cash", icon: Wallet },
   { href: "/reports", label: "Reports", icon: ChartLine },

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Fragment, useState } from "react";
 import { toast } from "sonner";
 import { outcomes, saveLabel, summaryLine, type Outcome } from "@/books/describe";
-import { suppliers } from "@/books/selectors";
+import { customerBalances, ownerLoanBalance, suppliers } from "@/books/selectors";
 import { useBooks } from "@/books/store";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -60,10 +60,13 @@ export function useConfirmedAction({ after = "/" }: { after?: string | null } = 
     const pos = positions(snapshot.book.entries);
     const supplier = supplierOf(cmd)?.trim().toLowerCase();
     const owedToSupplier = supplier ? (suppliers(snapshot).find((s) => s.supplier.toLowerCase() === supplier)?.amount ?? 0) : 0;
+    const customer = cmd.kind === "payment_received" ? cmd.customer : undefined;
+    const owedByCustomer = customer ? (customerBalances(snapshot).find((c) => c.customer === customer)?.amount ?? 0) : 0;
+    const owedToOwner = ownerLoanBalance(snapshot);
     setPending({
       cmd,
       entry: p.result.entry,
-      rows: outcomes(cmd, p.result.entry, snapshot.book, { cashBox: pos.cashBox, bank: pos.bank, owedToSupplier }),
+      rows: outcomes(cmd, p.result.entry, snapshot.book, { cashBox: pos.cashBox, bank: pos.bank, owedToSupplier, owedByCustomer, owedToOwner }),
       summary: summaryLine(cmd, snapshot.book),
       save: opts.saveLabel ?? saveLabel(cmd),
       toast: opts.toast,

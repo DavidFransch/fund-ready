@@ -122,10 +122,10 @@ export default function HomePage() {
       </nav>
 
       <div data-tour="home-owed" className="mt-1 grid grid-cols-2 gap-2">
-        <Panel className="flex flex-col gap-1 rounded-2xl p-3.5">
+        <Link href="/customers" className="flex flex-col gap-1 rounded-2xl bg-panel p-3.5 hover:bg-panel-strong">
           <span className="text-xs text-ink-muted">Customers owe you</span>
           <span className="text-[17px] font-semibold">{money(h.owedToYou)}</span>
-        </Panel>
+        </Link>
         <Link href="/suppliers" className="flex flex-col gap-1 rounded-2xl bg-panel p-3.5 hover:bg-panel-strong">
           <span className="text-xs text-ink-muted">You owe suppliers</span>
           <span className="text-[17px] font-semibold">{money(h.owedToSuppliers)}</span>

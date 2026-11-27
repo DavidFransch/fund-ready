@@ -120,6 +120,8 @@ export function recordedFrom(cmd: Command | undefined): string {
       return cmd.category === "stock" ? "Buy stock" : "Other expense";
     case "payment_made":
       return "Pay a supplier";
+    case "payment_received":
+      return "Customers";
     case "stock_count":
       return "Count stock";
     case "transfer":
@@ -141,6 +143,9 @@ export interface Before {
   cashBox: number;
   bank: number;
   owedToSupplier?: number;
+  owedByCustomer?: number;
+  /** Shareholder loan: what the business owes the owner (negative: the owner owes the business). */
+  owedToOwner?: number;
 }
 
 /** What will happen, as short label/value rows shown before anything is saved. */
@@ -192,6 +197,12 @@ export function outcomes(cmd: Command, entry: JournalEntry | null, book: Book, b
       }
       break;
     }
+    case "payment_received": {
+      const owed = before.owedByCustomer ?? 0;
+      out.push({ icon: "owe", label: `${cmd.customer ?? "The customer"} owes you`, value: `${R(owed)} → ${R(Math.max(0, owed - cmd.amount))}`, tone: "ink" });
+      out.push(place(cmd.into));
+      break;
+    }
     case "payment_made": {
       const owed = before.owedToSupplier ?? 0;
       out.push({ icon: "owe", label: `You owe ${cmd.supplier}`, value: `${R(owed)} → ${R(Math.max(0, owed - cmd.amount))}`, tone: "ink" });
@@ -239,6 +250,8 @@ export function summaryLine(cmd: Command, book: Book): string {
     }
     case "payment_made":
       return `Paying ${cmd.supplier} ${R(cmd.amount)}`;
+    case "payment_received":
+      return `Payment from ${cmd.customer ?? "a customer"}${cmd.invoiceNumber ? ` for ${cmd.invoiceNumber}` : ""} · ${R(cmd.amount)}`;
     case "stock_count":
       return "Set your stock to what you counted";
     case "transfer":

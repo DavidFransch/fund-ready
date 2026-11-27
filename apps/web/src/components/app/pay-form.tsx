@@ -4,7 +4,7 @@ import { positions, times, type Command, type ExpenseCategoryId } from "@app/led
 import { ChevronRight, Package, Truck } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { CATEGORY_LABEL } from "@/books/describe";
+import { CATEGORY_LABEL, EXPENSE_SUGGESTIONS } from "@/books/describe";
 import { newId } from "@/books/ids";
 import { backdateRange, knownSuppliers, stockRows, suppliers } from "@/books/selectors";
 import { useConfirmedAction } from "@/components/app/confirm";
@@ -12,11 +12,12 @@ import { centsToText, Chips, ChoiceTiles, DateInput, MoneyInput, parseRand, Segm
 import { ChosenItem, ItemPicker } from "@/components/app/item-picker";
 import { Divider, FormActions, InfoStrip, Loading, Panel, Screen, STROKE } from "@/components/app/screen";
 import { money } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 type Mode = "stock" | "other";
 type PaidFrom = "cash" | "bank" | "credit" | "own";
 
-const OTHER_CATEGORIES = (["packaging", "transport", "rent", "wages", "electricity", "data", "bank_fees", "other"] as const).map((value) => ({
+const OTHER_CATEGORIES = (["packaging", "transport", "rent", "wages", "electricity", "data", "bank_fees", "shop_supplies", "other"] as const).map((value) => ({
   value,
   label: CATEGORY_LABEL[value],
 }));
@@ -42,6 +43,7 @@ export function PayForm({ initialMode }: { initialMode: Mode }) {
   if (!snapshot || !data) return <Loading />;
 
   const isStock = mode === "stock";
+  const suggestions = !isStock && category && category !== "stock" ? EXPENSE_SUGGESTIONS[category] : [];
   const item = data.rows.find((r) => r.id === itemId);
   // Suggest the last cost per unit until the user types their own.
   const shownCost = costText ?? (item ? centsToText(item.unitCost) : "");
@@ -152,13 +154,31 @@ export function PayForm({ initialMode }: { initialMode: Mode }) {
         </Panel>
       )}
 
-      <TextInput
-        label={isStock ? "Supplier" : "Description or shop"}
-        value={supplier}
-        onChange={setSupplier}
-        placeholder={isStock ? "e.g. Gugulethu Cash & Carry" : "e.g. Carrier bags"}
-        list={data.names}
-      />
+      {isStock ? (
+        <TextInput label="Supplier" value={supplier} onChange={setSupplier} placeholder="e.g. Gugulethu Cash & Carry" list={data.names} />
+      ) : (
+        <div className="flex flex-col gap-2">
+          <TextInput label="Description" value={supplier} onChange={setSupplier} placeholder={suggestions[0] ? `e.g. ${suggestions[0]}` : "Choose what it was for first"} />
+          {suggestions.length > 0 && (
+            <div role="group" aria-label="Suggestions" className="flex flex-wrap gap-1.5 px-1">
+              {suggestions.map((text) => (
+                <button
+                  key={text}
+                  type="button"
+                  aria-pressed={supplier === text}
+                  onClick={() => setSupplier(text)}
+                  className={cn(
+                    "min-h-9 rounded-full px-3 text-[13px] font-medium",
+                    supplier === text ? "bg-ink text-white" : "border border-input-border bg-page text-ink hover:bg-panel",
+                  )}
+                >
+                  {text}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <ChoiceTiles label="How are you paying?" options={payOptions} value={paidFrom} onChange={setPaidFrom} />
 

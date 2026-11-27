@@ -16,7 +16,21 @@ export const CATEGORY_LABEL: Record<ExpenseCategoryId, string> = {
   electricity: "Electricity",
   data: "Airtime and data",
   bank_fees: "Bank fees",
+  shop_supplies: "Shop supplies",
   other: "Other",
+};
+
+/** Common things a spaza pays for, offered as one-tap descriptions for the chosen category. */
+export const EXPENSE_SUGGESTIONS: Record<Exclude<ExpenseCategoryId, "stock">, string[]> = {
+  packaging: ["Carrier bags", "Paper bags", "Takeaway containers", "Cling wrap", "Labels and price stickers"],
+  transport: ["Taxi to wholesaler", "Petrol", "Delivery fee", "Bakkie hire", "Parking"],
+  rent: ["Shop rent", "Storage rent", "Container rent"],
+  wages: ["Helper's wages", "Casual worker", "Weekend staff"],
+  electricity: ["Prepaid electricity", "Gas refill"],
+  data: ["Airtime", "Data bundle", "WiFi"],
+  bank_fees: ["Monthly bank fee", "Card machine fees", "Cash deposit fee"],
+  shop_supplies: ["Cleaning materials", "Toilet paper", "Light bulbs", "Stationery", "Receipt rolls"],
+  other: ["Repairs", "Security", "Water", "Licence or permit", "Ice"],
 };
 
 const PAID_FROM_LABEL = { cash: "Petty cash", bank: "Bank", credit: "Pay later", own: "Own pocket" } as const;

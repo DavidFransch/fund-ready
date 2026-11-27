@@ -99,6 +99,7 @@ export const EXPENSE_CATEGORIES = [
   { id: "electricity", label: "Electricity", account: ACC.utilities },
   { id: "data", label: "Airtime and data", account: ACC.phoneData },
   { id: "bank_fees", label: "Bank fees", account: ACC.bankCharges },
+  { id: "shop_supplies", label: "Shop supplies", account: ACC.consumables },
   { id: "other", label: "Other", account: ACC.otherExpenses },
 ] as const;
 

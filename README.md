@@ -31,7 +31,7 @@ wording) and `apps/web/src/app/` (screens). Screens only use `useBooks()`, so th
 store can later be replaced by server actions on `packages/db`.
 
 What the demo simplifies:
-- Every action is dated today; there is no back-dating and no undo or reversal screen.
+- Buy stock, expenses and customer payments can be dated up to 60 days back; other actions are dated today. There is no undo or reversal screen.
 - No month is closed, so period locking is not shown.
 - Suppliers are matched by name for "money owed"; there are no supplier records.
 - Sending invoices and receipts by email only shows a "sent" message; nothing is emailed.
@@ -51,6 +51,17 @@ What the bank statement preview fakes:
   before the demo day, plus three lines the books don't have: a R65.00 bank fee, R3.12
   interest and an EFT from Lwazi Crèche for the open invoice INV-0001. Confirming them
   records real entries, so the bank reconciles.
+
+## Roadmap
+
+- **Stock count higher than the books**, with a reason per item: an unrecorded purchase
+  (Dr Inventory / Cr Bank, Cash or Trade creditors), a customer return (Dr Inventory /
+  Cr Cost of sales, plus Dr Sales returns / Cr Trade debtors or Bank to reverse the sale),
+  or sold but not collected (no entry: leave it out of the count). Today any surplus is
+  credited to stock losses.
+- **Asset register**: equipment such as fridges and shelving, with depreciation.
+- **WhatsApp Business API**: send invoices and receipts from the business's own number,
+  instead of opening WhatsApp on the phone.
 
 ## Local development
 

@@ -146,10 +146,6 @@ function ConfirmSheet({
         side="bottom"
         showCloseButton={false}
         onOpenAutoFocus={(e) => e.preventDefault()}
-        // The guided tour's card sits outside the sheet: using it must not close the sheet.
-        onPointerDownOutside={(e) => (e.target as Element | null)?.closest?.("[data-tour-card]") && e.preventDefault()}
-        onInteractOutside={(e) => (e.target as Element | null)?.closest?.("[data-tour-card]") && e.preventDefault()}
-        onFocusOutside={(e) => (e.target as Element | null)?.closest?.("[data-tour-card]") && e.preventDefault()}
         className={SHEET_OR_DIALOG}
       >
         <span aria-hidden className={SHEET_HANDLE} />
@@ -191,7 +187,7 @@ function ConfirmSheet({
         </div>
 
         {pending?.entry && (
-          <div data-tour="books-panel" className="flex flex-col rounded-2xl bg-panel">
+          <div className="flex flex-col rounded-2xl bg-panel">
             <button
               type="button"
               aria-expanded={showBooks}
@@ -208,7 +204,7 @@ function ConfirmSheet({
         )}
 
         <div className="flex flex-col gap-2">
-          <Button size="primary" onClick={onConfirm} data-tour="sheet-save">
+          <Button size="primary" onClick={onConfirm}>
             {pending?.save ?? "Save"}
           </Button>
           {pending?.whatsApp && (

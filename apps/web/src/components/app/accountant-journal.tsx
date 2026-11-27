@@ -168,7 +168,7 @@ export function AccountantJournal({ snapshot, onExport }: { snapshot: BooksSnaps
         {rows.length === 0 ? (
           <p className="text-[15px] text-ink-muted">Nothing here yet. Record something in the app and its journal entry appears here.</p>
         ) : (
-          <div data-tour="books-journal">
+          <div>
             <div className="flex flex-col">
               <div className={cn(cols, "px-2 pb-2.5 text-xs font-medium text-ink-muted sm:px-3")}>
                 <span>Time</span>

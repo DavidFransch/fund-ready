@@ -2,7 +2,6 @@ import "@fontsource-variable/geist";
 import "@fontsource-variable/geist-mono";
 import type { Metadata, Viewport } from "next";
 import { Toaster } from "@/components/ui/sonner";
-import { GuidedTour } from "@/tour/tour";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -22,7 +21,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         {children}
         <Toaster position="top-center" richColors={false} />
-        <GuidedTour />
       </body>
     </html>
   );

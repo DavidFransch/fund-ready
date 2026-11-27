@@ -64,7 +64,7 @@ function BankPreview() {
 
   return (
     <Screen nav header={<h1 className="px-5 pt-[22px] text-2xl font-semibold lg:px-0 lg:pt-0 lg:text-[28px]">{title}</h1>}>
-      <div data-tour="bank" className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4">
         {notice && <p className="rounded-[14px] bg-brand-tint px-3.5 py-3 text-sm">{notice}</p>}
 
         {stage === "upload" && (

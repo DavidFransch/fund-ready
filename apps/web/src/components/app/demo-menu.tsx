@@ -112,7 +112,7 @@ export function DemoMenu({ className }: { className?: string }) {
             <Settings2 className="size-5" strokeWidth={STROKE} aria-hidden /> Demo settings
           </Button>
         ) : (
-          <DemoSettingsPanel onDone={() => close(false)} />
+          <DemoSettingsPanel />
         )}
       </SheetContent>
     </Sheet>

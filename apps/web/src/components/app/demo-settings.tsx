@@ -1,14 +1,10 @@
 "use client";
 
 import { Settings2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useBooks } from "@/books/store";
-import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { setFlag, useFeature, type Feature } from "@/features";
 import { cn } from "@/lib/utils";
-import { tour } from "@/tour/state";
 import { SHEET_HANDLE, SHEET_OR_DIALOG } from "./sheet-style";
 
 const STROKE = 1.75;
@@ -28,39 +24,11 @@ function Toggle({ feature, label, detail }: { feature: Feature; label: string; d
   );
 }
 
-/** The switches and "Restart tour". Used in the sidebar's dialog and inside the phone menu. */
-export function DemoSettingsPanel({ onDone }: { onDone: () => void }) {
-  const { reset } = useBooks();
-  const router = useRouter();
-  const [restarting, setRestarting] = useState(false);
-  // The tour begins on Home, wherever it was restarted from.
-  const start = (fresh: boolean) => {
-    if (fresh) reset();
-    setFlag("tour", true);
-    tour.start();
-    setRestarting(false);
-    onDone();
-    router.push("/");
-  };
+/** The demo switches. Used in the sidebar's dialog and inside the phone menu. */
+export function DemoSettingsPanel() {
   return (
     <div className="flex flex-col gap-2">
-      <Toggle feature="tour" label="Guided tour" detail="A short tour of one sale, from Home to the books" />
       <Toggle feature="bankImport" label="Bank statement (preview)" detail="Match a sample bank statement to the books" />
-      {!restarting ? (
-        <Button variant="outline" size="touch" className="mt-1" onClick={() => setRestarting(true)}>
-          Restart tour
-        </Button>
-      ) : (
-        <div className="mt-1 flex flex-col gap-2 rounded-2xl bg-brand-tint p-4">
-          <p className="text-[15px] leading-snug">Start from a fresh shop so the numbers match the tour?</p>
-          <Button size="touch" onClick={() => start(true)}>
-            Reset demo and start tour
-          </Button>
-          <Button size="touch" variant="outline" onClick={() => start(false)}>
-            Keep my changes and start
-          </Button>
-        </div>
-      )}
     </div>
   );
 }
@@ -79,7 +47,7 @@ export function DemoSettingsButton({ className }: { className?: string }) {
           <SheetTitle className="text-[22px] font-semibold tracking-[-0.02em]">Demo settings</SheetTitle>
           <SheetDescription className="text-[15px] text-ink-muted">Saved in this browser. Reset demo doesn&apos;t change them.</SheetDescription>
         </SheetHeader>
-        <DemoSettingsPanel onDone={() => setOpen(false)} />
+        <DemoSettingsPanel />
       </SheetContent>
     </Sheet>
   );

@@ -88,19 +88,3 @@
     outline-offset: 2px;
   }
 }
-
-/* Guided tour: a soft pulse around the spotlight, so the place to tap stands out. */
-@keyframes tour-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgb(15 93 67 / 0.45);
-  }
-  50% {
-    box-shadow: 0 0 0 8px rgb(15 93 67 / 0);
-  }
-}
-@media (prefers-reduced-motion: no-preference) {
-  .tour-pulse {
-    animation: tour-pulse 1.6s ease-in-out infinite;
-  }
-}

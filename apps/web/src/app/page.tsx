@@ -75,7 +75,7 @@ export default function HomePage() {
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-start lg:gap-6">
       <div className="flex min-w-0 flex-col gap-4">
-      <NightCard data-tour="home-balance" aria-label="Your money" className="mt-1 flex flex-col gap-4 lg:mt-0">
+      <NightCard aria-label="Your money" className="mt-1 flex flex-col gap-4 lg:mt-0">
         <div className="flex flex-col gap-1.5">
           <span className="text-[13px] font-medium text-night-muted">Cash and bank</span>
           <Amount cents={h.cashBox + h.bank} className="text-[38px]" centsClassName="text-night-muted" />
@@ -107,7 +107,7 @@ export default function HomePage() {
 
       <nav aria-label="Quick actions" className="mt-1 grid grid-cols-4 gap-2 lg:hidden">
         {ACTIONS.map(({ href, label, icon: Icon, primary }) => (
-          <Link key={href} href={href} data-tour={href === "/sell" ? "home-sell" : undefined} className="group flex flex-col items-center gap-2 text-[13px] font-medium">
+          <Link key={href} href={href} className="group flex flex-col items-center gap-2 text-[13px] font-medium">
             <span
               className={cn(
                 "flex size-14 items-center justify-center rounded-[18px] transition-colors",
@@ -153,7 +153,6 @@ export default function HomePage() {
             <Link
               key={href}
               href={href}
-              data-tour={href === "/sell" ? "home-sell" : undefined}
               className={cn(
                 "flex min-h-[132px] flex-col justify-between gap-4 rounded-[20px] p-4 transition-colors",
                 primary ? "bg-brand text-white hover:bg-brand-strong" : "bg-panel text-ink hover:bg-panel-strong",

@@ -3,16 +3,16 @@
 import { useSyncExternalStore } from "react";
 
 /**
- * Demo feature switches. Order: URL param (?tour=on|off, ?bank=on|off, remembered once
+ * Demo feature switches. Order: URL param (?bank=on|off, remembered once
  * used) → this browser's saved choice → default. Works without storage. Reset demo
  * leaves these alone.
  */
 
-export type Feature = "tour" | "bankImport";
+export type Feature = "bankImport";
 type Flags = Record<Feature, boolean>;
 
-const DEFAULTS: Flags = { tour: false, bankImport: false };
-const PARAMS: Record<string, Feature> = { tour: "tour", bank: "bankImport" };
+const DEFAULTS: Flags = { bankImport: false };
+const PARAMS: Record<string, Feature> = { bank: "bankImport" };
 const KEY = "fetola-flags";
 
 let flags: Flags | null = null;

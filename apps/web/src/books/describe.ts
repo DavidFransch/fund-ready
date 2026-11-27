@@ -301,3 +301,24 @@ export function saveLabel(cmd: Command): string {
   }
 }
 
+/** The invoice as a WhatsApp message: number, one line per item, total, who to pay. */
+export function invoiceText(cmd: Command, business: string): string {
+  if (cmd.kind !== "sale") return "";
+  const total = cmd.lines.reduce((t, l) => t + l.qty * l.unitPrice, 0);
+  return [
+    `Invoice ${cmd.invoiceNumber ?? ""} from ${business}`.replace("  ", " "),
+    ...(cmd.customer ? [`For: ${cmd.customer}`] : []),
+    "",
+    ...cmd.lines.map((l) => `${l.qty} × ${l.description} @ ${R(l.unitPrice)} = ${R(l.qty * l.unitPrice)}`),
+    "",
+    `Total: ${R(total)}`,
+    `Please pay ${business}. Thank you!`,
+  ].join("\n");
+}
+
+/** A wa.me link with the message filled in. South African numbers like 082 123 4567 become 27821234567; no number lets the user pick the chat. */
+export function whatsAppLink(number: string, text: string): string {
+  const digits = number.replace(/\D/g, "");
+  const intl = digits.startsWith("0") ? `27${digits.slice(1)}` : digits;
+  return `https://wa.me/${intl}?text=${encodeURIComponent(text)}`;
+}

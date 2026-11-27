@@ -23,12 +23,15 @@ interface Pending {
   summary: string;
   save: string;
   toast?: SavedToast;
+  whatsApp?: string;
 }
 
 /** Overrides for one action: the save button's wording and the toast after saving. */
 export interface CheckOptions {
   saveLabel?: string;
   toast?: SavedToast;
+  /** Offer "Save and send on WhatsApp": saves, then opens this wa.me link. */
+  whatsApp?: string;
 }
 
 interface SavedToast {
@@ -71,6 +74,7 @@ export function useConfirmedAction({ after = "/" }: { after?: string | null } = 
       summary: summaryLine(cmd, snapshot.book),
       save: opts.saveLabel ?? saveLabel(cmd),
       toast: opts.toast,
+      whatsApp: opts.whatsApp,
     });
   }
 
@@ -182,6 +186,20 @@ function ConfirmSheet({ pending, today, onCancel, onConfirm }: { pending: Pendin
           <Button size="primary" onClick={onConfirm}>
             {pending?.save ?? "Save"}
           </Button>
+          {pending?.whatsApp && (
+            <Button
+              variant="outline"
+              size="touch"
+              className="h-12 rounded-2xl text-[15px]"
+              onClick={() => {
+                // Open first, inside the tap, so the browser doesn't block the new tab.
+                window.open(pending.whatsApp, "_blank", "noopener");
+                onConfirm();
+              }}
+            >
+              Save and send on WhatsApp
+            </Button>
+          )}
           <Button variant="tertiary" className="h-12 rounded-2xl text-[15px] font-medium" onClick={onCancel}>
             Edit
           </Button>

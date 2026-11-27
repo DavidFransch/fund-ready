@@ -1,5 +1,5 @@
 import { ACC, netBalances, trialBalance, balanceSheet, totalStockValue, positions, type Command } from "@app/ledger";
-import { effectOn, summaryLine } from "./describe";
+import { effectOn, invoiceText, summaryLine, whatsAppLink } from "./describe";
 import { backdateRange, nextInvoiceNumber } from "./selectors";
 import type { BooksSnapshot } from "./store";
 import { describe, expect, it } from "vitest";
@@ -104,5 +104,21 @@ describe("invoice with several items", () => {
 
   it("is described as several items", () => {
     expect(summaryLine(cmd, book)).toBe(`${SAMPLE_ITEMS.length} items to Lwazi, paid later`);
+  });
+});
+
+describe("WhatsApp invoice", () => {
+  const cmd: Command = { kind: "sale", id: "w", date: "2026-11-30", paidWith: "credit", customer: "Lwazi Crèche", invoiceNumber: "INV-0002", lines: [{ itemId: "bread", description: "Brown bread", qty: 3, unitPrice: 2000 }, { itemId: "milk", description: "Milk 1L", qty: 1, unitPrice: 2400 }] };
+
+  it("lists the lines and the total", () => {
+    const text = invoiceText(cmd, "Mama Tee Spaza");
+    expect(text).toContain("Invoice INV-0002 from Mama Tee Spaza");
+    expect(text).toContain("3 × Brown bread @ R20.00 = R60.00");
+    expect(text).toContain("Total: R84.00");
+  });
+
+  it("turns a local number into an international wa.me link, or leaves the chat to pick", () => {
+    expect(whatsAppLink("082 123 4567", "hi")).toBe("https://wa.me/27821234567?text=hi");
+    expect(whatsAppLink("", "a b")).toBe("https://wa.me/?text=a%20b");
   });
 });

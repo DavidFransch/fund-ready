@@ -3,7 +3,8 @@
 import { ACC, positions, type Command, type PaymentMethod } from "@app/ledger";
 import { Wallet } from "lucide-react";
 import { useMemo, useState } from "react";
-import { effectOn } from "@/books/describe";
+import { effectOn, invoiceText, whatsAppLink } from "@/books/describe";
+import { BUSINESS } from "@/books/seed";
 import { newId } from "@/books/ids";
 import { nextInvoiceNumber, stockRows } from "@/books/selectors";
 import { useBooks } from "@/books/store";
@@ -27,6 +28,7 @@ export function SellForm() {
   const [method, setMethod] = useState<PaymentMethod | null>(null);
   const [customer, setCustomer] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
 
   const rows = useMemo(() => (snapshot ? stockRows(snapshot) : []), [snapshot]);
   const basket = useLineItems(rows);
@@ -94,13 +96,16 @@ export function SellForm() {
             !missing &&
             check(
               { ...cmd, id: newId() } as Command,
-              sendTo
-                ? {
+              {
+                ...(invoiceNumber ? { whatsApp: whatsAppLink(phone, invoiceText(cmd, BUSINESS.name)) } : {}),
+                ...(sendTo
+                  ? {
                     saveLabel: invoiceNumber ? "Save and send invoice" : "Save and send receipt",
                     // Sending isn't built yet: show what it will look like, and say so.
                     toast: { title: invoiceNumber ? `Invoice ${invoiceNumber} sent` : "Receipt sent", description: `To ${sendTo}. Email is coming soon: nothing was sent yet.` },
-                  }
-                : {},
+                    }
+                  : {}),
+              },
             )
           }
         />
@@ -114,6 +119,7 @@ export function SellForm() {
       <Chips label="Paid with" options={METHODS} value={method} onChange={setMethod} columns={4} />
       {method === "credit" && <TextInput label="Who will pay?" value={customer} onChange={setCustomer} placeholder="Customer name" />}
       {paidNow && <TextInput label="Email a receipt" type="email" value={email} onChange={setEmail} placeholder="name@example.co.za" hint="Optional. Leave it empty if they don't want one." />}
+      {invoiceNumber && <TextInput label="WhatsApp number" type="tel" value={phone} onChange={setPhone} placeholder="e.g. 082 123 4567" hint="Optional. Leave it empty to pick the chat in WhatsApp." />}
       {invoiceNumber && <TextInput label="Email the invoice" type="email" value={email} onChange={setEmail} placeholder="name@example.co.za" hint="Optional. We'll email them the invoice." />}
 
       {priced.length > 0 && <BasketProfit basket={basket} cost={cost} noun="sale" />}

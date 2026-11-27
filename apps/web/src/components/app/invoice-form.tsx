@@ -3,7 +3,8 @@
 import { ACC, type Command } from "@app/ledger";
 import { Wallet } from "lucide-react";
 import { useMemo, useState } from "react";
-import { effectOn } from "@/books/describe";
+import { effectOn, invoiceText, whatsAppLink } from "@/books/describe";
+import { BUSINESS } from "@/books/seed";
 import { newId } from "@/books/ids";
 import { nextInvoiceNumber, stockRows } from "@/books/selectors";
 import { useBooks } from "@/books/store";
@@ -18,6 +19,7 @@ export function InvoiceForm() {
   const { preview } = useBooks();
   const [customer, setCustomer] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
 
   const rows = useMemo(() => (snapshot ? stockRows(snapshot) : []), [snapshot]);
   const basket = useLineItems(rows);
@@ -70,19 +72,23 @@ export function InvoiceForm() {
             !missing &&
             check(
               { ...cmd, id: newId() } as Command,
-              sendTo
-                ? {
+              {
+                whatsApp: whatsAppLink(phone, invoiceText(cmd, BUSINESS.name)),
+                ...(sendTo
+                  ? {
                     saveLabel: "Save and send invoice",
                     // Sending isn't built yet: show what it will look like, and say so.
                     toast: { title: `Invoice ${invoiceNumber} sent`, description: `To ${sendTo}. Email is coming soon: nothing was sent yet.` },
-                  }
-                : {},
+                    }
+                  : {}),
+              },
             )
           }
         />
       }
     >
       <TextInput label="Who will pay?" value={customer} onChange={setCustomer} placeholder="Customer name" />
+      <TextInput label="WhatsApp number" type="tel" value={phone} onChange={setPhone} placeholder="e.g. 082 123 4567" hint="Optional. Leave it empty to pick the chat in WhatsApp." />
       <TextInput label="Customer email" type="email" value={email} onChange={setEmail} placeholder="name@example.co.za" hint="Optional. We'll email them the invoice." />
 
       {priced.length > 0 && <BasketTotal basket={basket} />}

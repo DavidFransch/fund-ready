@@ -87,7 +87,7 @@ export function TextInput({
   onChange: (v: string) => void;
   placeholder?: string;
   list?: string[];
-  type?: "text" | "email";
+  type?: "text" | "email" | "tel";
   /** Shown under the field, e.g. why it's optional. */
   hint?: string;
 }) {
@@ -104,8 +104,8 @@ export function TextInput({
         placeholder={placeholder}
         list={list ? `${id}-list` : undefined}
         type={type}
-        inputMode={type === "email" ? "email" : undefined}
-        autoCapitalize={type === "email" ? "none" : undefined}
+        inputMode={type === "text" ? undefined : type}
+        autoCapitalize={type === "text" ? undefined : "none"}
         autoComplete="off"
         aria-describedby={hint ? `${id}-hint` : undefined}
         className={cn(field, "text-[15px] placeholder:text-ink-faint")}

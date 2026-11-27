@@ -106,8 +106,10 @@ export function SellForm() {
         />
       }
     >
-      {priced.length > 0 && <BasketTotal basket={basket} />}
-      <BasketLines basket={basket} label="In this sale" emptyLabel="What did you sell?" />
+      <div data-tour="sale" className="flex flex-col gap-4">
+        {priced.length > 0 && <BasketTotal basket={basket} />}
+        <BasketLines basket={basket} label="In this sale" emptyLabel="What did you sell?" />
+      </div>
 
       <Chips label="Paid with" options={METHODS} value={method} onChange={setMethod} columns={4} />
       {method === "credit" && <TextInput label="Who will pay?" value={customer} onChange={setCustomer} placeholder="Customer name" />}

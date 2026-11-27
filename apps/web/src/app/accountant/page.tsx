@@ -32,7 +32,7 @@ function SectionPicker({ section, onChange }: { section: Section; onChange: (s: 
   return (
     <header className="flex items-center gap-3 px-5 pt-[22px] lg:hidden">
       <Sheet open={open} onOpenChange={setOpen}>
-        <button type="button" onClick={() => setOpen(true)} aria-haspopup="dialog" className="flex min-w-0 flex-1 flex-col items-start text-left">
+        <button type="button" onClick={() => setOpen(true)} aria-haspopup="dialog" data-tour="books-tb" className="flex min-w-0 flex-1 flex-col items-start text-left">
           <span className="text-[13px] font-medium text-ink-muted">Books</span>
           <span className="flex items-center gap-1.5 text-2xl font-semibold">
             {current.label}
@@ -97,6 +97,7 @@ export default function AccountantPage() {
                 key={value}
                 type="button"
                 aria-current={section === value ? "page" : undefined}
+                data-tour={value === "tb" ? "books-tb" : undefined}
                 onClick={() => setSection(value)}
                 className={cn(navItem, section === value ? "bg-panel-strong font-semibold text-ink" : "font-medium text-[#3E4642] hover:bg-panel")}
               >

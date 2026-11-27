@@ -41,7 +41,7 @@ export default function HomePage() {
     <Screen
       nav
       header={
-        <header className="flex items-center gap-3 px-5 pt-[18px] lg:px-0 lg:pt-0">
+        <header data-tour="home-welcome" className="flex items-center gap-3 px-5 pt-[18px] lg:px-0 lg:pt-0">
           <span className="lg:hidden">
             <Logo />
           </span>
@@ -75,7 +75,7 @@ export default function HomePage() {
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-start lg:gap-6">
       <div className="flex min-w-0 flex-col gap-4">
-      <NightCard aria-label="Your money" className="mt-1 flex flex-col gap-4 lg:mt-0">
+      <NightCard data-tour="home-balance" aria-label="Your money" className="mt-1 flex flex-col gap-4 lg:mt-0">
         <div className="flex flex-col gap-1.5">
           <span className="text-[13px] font-medium text-night-muted">Cash and bank</span>
           <Amount cents={h.cashBox + h.bank} className="text-[38px]" centsClassName="text-night-muted" />
@@ -121,7 +121,7 @@ export default function HomePage() {
         ))}
       </nav>
 
-      <div className="mt-1 grid grid-cols-2 gap-2">
+      <div data-tour="home-owed" className="mt-1 grid grid-cols-2 gap-2">
         <Panel className="flex flex-col gap-1 rounded-2xl p-3.5">
           <span className="text-xs text-ink-muted">Customers owe you</span>
           <span className="text-[17px] font-semibold">{money(h.owedToYou)}</span>

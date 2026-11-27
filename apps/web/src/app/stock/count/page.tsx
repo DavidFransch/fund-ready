@@ -69,7 +69,7 @@ function CountForm() {
       }
     >
       <p className="-mt-1 px-1 text-[15px] leading-[1.45] text-ink-muted">Count what is on the shelf. Change any number that is different.</p>
-      <Panel className="flex flex-col">
+      <Panel data-tour="count" className="flex flex-col">
         {rows.map((r, i) => {
           const value = counted[r.id] ?? r.qty;
           const diff = value - r.qty;

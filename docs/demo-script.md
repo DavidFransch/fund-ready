@@ -28,7 +28,7 @@
 - *Say:* "Profit on every sale, at weighted average cost, without her ever hearing the words 'cost of sales'."
 
 ### 3. A related expense: packaging
-**Home → Expense** → What was it for? **Packaging** → How much **85** → Description **Carrier bags** → **Petty cash** → **Review expense → Save expense**.
+**Home → Expense** → What was it for? **Packaging** → How much **85** → Description: tap **Carrier bags** under the field → **Petty cash** → **Review expense → Save expense**.
 - Books: Dr 6600 Packaging materials 85.00 / Cr 1010 Cash on hand 85.00.
 
 ### 4. Count stock: 10 → 8, lost or stolen

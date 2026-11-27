@@ -99,7 +99,20 @@ export function useConfirmedAction({ after = "/" }: { after?: string | null } = 
     if (after) router.push(after);
   }
 
-  const sheet = <ConfirmSheet pending={pending} today={snapshot?.today} onCancel={() => setPending(null)} onConfirm={confirm} />;
+  /** Check it will save (the same preview as Check and save) before WhatsApp opens, then save. */
+  function sendOnWhatsApp() {
+    if (!pending?.whatsApp) return;
+    const p = preview(pending.cmd);
+    if (!p.ok) {
+      toast.error(p.message);
+      return;
+    }
+    // Open inside the tap, so the browser doesn't block the new tab.
+    window.open(pending.whatsApp, "_blank", "noopener");
+    confirm();
+  }
+
+  const sheet = <ConfirmSheet pending={pending} today={snapshot?.today} onCancel={() => setPending(null)} onConfirm={confirm} onWhatsApp={sendOnWhatsApp} />;
   return { snapshot, check, sheet };
 }
 
@@ -113,7 +126,19 @@ const ICONS: Record<Outcome["icon"], { icon: LucideIcon; tile: string }> = {
   neutral: { icon: Wallet, tile: "bg-panel-strong text-ink-muted" },
 };
 
-function ConfirmSheet({ pending, today, onCancel, onConfirm }: { pending: Pending | null; today?: string; onCancel: () => void; onConfirm: () => void }) {
+function ConfirmSheet({
+  pending,
+  today,
+  onCancel,
+  onConfirm,
+  onWhatsApp,
+}: {
+  pending: Pending | null;
+  today?: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+  onWhatsApp: () => void;
+}) {
   const [showBooks, setShowBooks] = useState(true);
   return (
     <Sheet open={!!pending} onOpenChange={(open) => !open && onCancel()}>
@@ -191,11 +216,7 @@ function ConfirmSheet({ pending, today, onCancel, onConfirm }: { pending: Pendin
               variant="outline"
               size="touch"
               className="h-12 rounded-2xl text-[15px]"
-              onClick={() => {
-                // Open first, inside the tap, so the browser doesn't block the new tab.
-                window.open(pending.whatsApp, "_blank", "noopener");
-                onConfirm();
-              }}
+              onClick={onWhatsApp}
             >
               Save and send on WhatsApp
             </Button>

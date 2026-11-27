@@ -46,7 +46,8 @@ function build(anchorDate: string, userCommands: readonly Command[], userTimes: 
       book.execute(cmd);
       all.push(cmd);
       userIds.add(cmd.id);
-      if (userTimes[cmd.id]) times.set(cmd.id, userTimes[cmd.id]!);
+      // A back-dated entry has no time of day: it wasn't recorded on that day.
+      if (userTimes[cmd.id] && cmd.date >= anchorDate) times.set(cmd.id, userTimes[cmd.id]!);
     } catch {
       // A stored command the books no longer accept is dropped rather than breaking the demo.
     }
@@ -108,7 +109,8 @@ function createLocalBackend(): BooksBackend {
         const result = s.book.execute(cmd);
         const commands = [...s.commands, cmd];
         const userCommandIds = new Set(s.userCommandIds).add(cmd.id);
-        const times = new Map(s.times).set(cmd.id, clockNow());
+        const times = new Map(s.times);
+        if (cmd.date === localToday()) times.set(cmd.id, clockNow());
         const next = { ...s, version: s.version + 1, commands, userCommandIds, times, today: localToday() };
         snapshot = { ...next, saved: persist(next) };
         emit();

@@ -255,7 +255,7 @@ function Kpi({ label, value }: { label: string; value: string }) {
 function EntryPanel({ row, today }: { row: JournalRow; today: string }) {
   const debit = row.entry.lines.reduce((s, l) => s + l.debit, 0);
   const credit = row.entry.lines.reduce((s, l) => s + l.credit, 0);
-  const when = row.entry.date === today ? `today ${row.time}` : `${row.entry.date} ${row.time}`;
+  const when = `${row.entry.date === today ? "today" : row.entry.date}${row.time ? ` ${row.time}` : ""}`;
   return (
     <aside data-tour="books-entry" aria-label="Journal entry" className="flex w-full flex-col gap-[18px] px-5 pt-14 pb-8 sm:px-6 xl:w-[360px] xl:shrink-0 xl:border-l xl:border-hairline xl:pt-7">
       <div className="flex flex-col gap-1.5">

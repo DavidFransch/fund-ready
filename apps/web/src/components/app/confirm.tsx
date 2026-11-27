@@ -5,6 +5,7 @@ import { BookOpen, ChevronDown, CircleMinus, Clock, Package, TrendingDown, Trend
 import { useRouter } from "next/navigation";
 import { Fragment, useState } from "react";
 import { toast } from "sonner";
+import { formatDay } from "@/books/dates";
 import { outcomes, saveLabel, summaryLine, type Outcome } from "@/books/describe";
 import { customerBalances, ownerLoanBalance, suppliers } from "@/books/selectors";
 import { useBooks } from "@/books/store";
@@ -94,7 +95,7 @@ export function useConfirmedAction({ after = "/" }: { after?: string | null } = 
     if (after) router.push(after);
   }
 
-  const sheet = <ConfirmSheet pending={pending} onCancel={() => setPending(null)} onConfirm={confirm} />;
+  const sheet = <ConfirmSheet pending={pending} today={snapshot?.today} onCancel={() => setPending(null)} onConfirm={confirm} />;
   return { snapshot, check, sheet };
 }
 
@@ -108,7 +109,7 @@ const ICONS: Record<Outcome["icon"], { icon: LucideIcon; tile: string }> = {
   neutral: { icon: Wallet, tile: "bg-panel-strong text-ink-muted" },
 };
 
-function ConfirmSheet({ pending, onCancel, onConfirm }: { pending: Pending | null; onCancel: () => void; onConfirm: () => void }) {
+function ConfirmSheet({ pending, today, onCancel, onConfirm }: { pending: Pending | null; today?: string; onCancel: () => void; onConfirm: () => void }) {
   const [showBooks, setShowBooks] = useState(true);
   return (
     <Sheet open={!!pending} onOpenChange={(open) => !open && onCancel()}>
@@ -126,6 +127,11 @@ function ConfirmSheet({ pending, onCancel, onConfirm }: { pending: Pending | nul
         <SheetHeader className="gap-1 p-0">
           <SheetTitle className="text-[22px] font-semibold tracking-[-0.02em]">Check and save</SheetTitle>
           <SheetDescription className="text-[15px] text-ink-muted">{pending?.summary}</SheetDescription>
+          {pending && today && pending.cmd.date !== today && (
+            <span className="self-start">
+              <Pill>Dated {formatDay(pending.cmd.date, { weekday: "short", day: "numeric", month: "short" })}</Pill>
+            </span>
+          )}
         </SheetHeader>
 
         <div className="flex flex-col rounded-2xl border border-divider">

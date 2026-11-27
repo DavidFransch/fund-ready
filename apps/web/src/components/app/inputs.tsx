@@ -19,6 +19,23 @@ export function parseRand(text: string): number | null {
 }
 
 /** Cents back into the plain text a user would type, e.g. 2200 -> "22.00". */
+/** A date between `min` and `max` (ISO dates), defaulting to today. Hint says which day it is. */
+export function DateInput({ label = "Date", value, onChange, min, max }: { label?: string; value: string; onChange: (v: string) => void; min: string; max: string }) {
+  const id = useId();
+  const outside = value < min || value > max;
+  return (
+    <div className="flex min-w-0 flex-col gap-1.5">
+      <label htmlFor={id} className="px-1 text-[13px] font-medium text-ink-muted">
+        {label}
+      </label>
+      <input id={id} type="date" value={value} min={min} max={max} onChange={(e) => e.target.value && onChange(e.target.value)} className={cn(field, "text-[15px]")} />
+      <span className={cn("px-1 text-[13px]", outside ? "font-medium text-negative" : "text-ink-muted")}>
+        {outside ? "Choose a day in the last 60 days, not in the future" : value === max ? "Today" : "Recorded on this day, not today"}
+      </span>
+    </div>
+  );
+}
+
 /** Loose check that catches typos like "lwazi@" without rejecting real addresses. */
 export function isEmail(text: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text.trim());

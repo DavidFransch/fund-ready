@@ -3,11 +3,11 @@
 import { positions, type Command } from "@app/ledger";
 import { useState } from "react";
 import { newId } from "@/books/ids";
-import { customerBalances } from "@/books/selectors";
+import { backdateRange, customerBalances } from "@/books/selectors";
 import type { BooksSnapshot } from "@/books/store";
 import { useConfirmedAction } from "@/components/app/confirm";
 import { FreshOnEachVisit } from "@/components/app/fresh";
-import { centsToText, ChoiceTiles, MoneyInput, parseRand } from "@/components/app/inputs";
+import { centsToText, ChoiceTiles, DateInput, MoneyInput, parseRand } from "@/components/app/inputs";
 import { FormActions, Loading, Panel, Screen } from "@/components/app/screen";
 import { money } from "@/lib/format";
 
@@ -35,6 +35,9 @@ function CustomerPayment({ snapshot, check, sheet }: { snapshot: BooksSnapshot; 
   const [invoiceNumber, setInvoiceNumber] = useState<string | null>(invoices[0]?.number ?? null);
   const [amountText, setAmountText] = useState<string | null>(null);
   const [method, setMethod] = useState<Method | null>(null);
+  const [date, setDate] = useState<string | null>(null);
+  const range = backdateRange(snapshot);
+  const day = date ?? snapshot.today;
   const invoice = invoices.find((i) => i.number === invoiceNumber);
   const shown = amountText ?? (invoice ? centsToText(invoice.amount) : "");
   const amount = parseRand(shown);
@@ -48,7 +51,9 @@ function CustomerPayment({ snapshot, check, sheet }: { snapshot: BooksSnapshot; 
           ? `That's more than the ${money(invoice.amount)} still owed`
           : !method
             ? "Choose how they paid"
-            : null;
+            : day < range.min || day > range.max
+              ? "Choose a date in the last 60 days"
+              : null;
 
   return (
     <Screen
@@ -67,7 +72,7 @@ function CustomerPayment({ snapshot, check, sheet }: { snapshot: BooksSnapshot; 
               amount &&
               method &&
               !missing &&
-              check({ kind: "payment_received", id: newId(), date: snapshot.today, amount, into: method === "cash" ? "cash" : "bank", customer: invoice.customer, invoiceNumber: invoice.number })
+              check({ kind: "payment_received", id: newId(), date: day, amount, into: method === "cash" ? "cash" : "bank", customer: invoice.customer, invoiceNumber: invoice.number })
             }
           />
         )
@@ -98,6 +103,7 @@ function CustomerPayment({ snapshot, check, sheet }: { snapshot: BooksSnapshot; 
             value={method}
             onChange={setMethod}
           />
+          <DateInput label="Date paid" value={day} onChange={setDate} min={range.min} max={range.max} />
         </>
       )}
       {sheet}

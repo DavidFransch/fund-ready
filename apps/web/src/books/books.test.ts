@@ -1,6 +1,6 @@
 import { ACC, netBalances, trialBalance, balanceSheet, totalStockValue, positions, type Command } from "@app/ledger";
 import { effectOn, summaryLine } from "./describe";
-import { nextInvoiceNumber } from "./selectors";
+import { backdateRange, nextInvoiceNumber } from "./selectors";
 import type { BooksSnapshot } from "./store";
 import { describe, expect, it } from "vitest";
 import { periodRange, weekStart } from "./dates";
@@ -59,6 +59,15 @@ describe("sample business", () => {
       expect(trialBalance(s.book.entries).balanced).toBe(true);
       expect(s.book.level(HERO_ITEM).qty).toBe(HERO_QTY);
     }
+  });
+});
+
+describe("back-dating", () => {
+  it("allows 60 days back but not before the books start, and never the future", () => {
+    const { book } = generateSampleBusiness("2026-11-30");
+    const snap = (today: string) => ({ today, book }) as unknown as BooksSnapshot;
+    expect(backdateRange(snap("2026-11-30"))).toEqual({ min: "2026-10-01", max: "2026-11-30" });
+    expect(backdateRange(snap("2026-12-15")).min).toBe("2026-10-16");
   });
 });
 

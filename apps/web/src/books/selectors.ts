@@ -1,5 +1,6 @@
 import {
   ACC,
+  addDays,
   CHART,
   cashFlowSummary,
   incomeStatement,
@@ -219,6 +220,13 @@ export function openInvoices(s: BooksSnapshot): OpenInvoice[] {
     const amount = c.lines.reduce((t, l) => t + l.qty * l.unitPrice, 0) - (paid.get(c.invoiceNumber) ?? 0);
     return amount > 0 ? [{ number: c.invoiceNumber, customer: c.customer ?? "Customer", amount }] : [];
   });
+}
+
+/** Days an entry can be dated: back to 60 days ago (or the start of the books), never in the future. */
+export function backdateRange(s: BooksSnapshot): { min: IsoDate; max: IsoDate } {
+  const first = s.book.entries.reduce<IsoDate>((m, e) => (e.date < m ? e.date : m), s.today);
+  const sixtyDays = addDays(s.today, -60);
+  return { min: first > sixtyDays ? first : sixtyDays, max: s.today };
 }
 
 /** What the business owes the owner on the shareholder loan (negative: the owner owes the business). */

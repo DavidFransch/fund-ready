@@ -6,9 +6,9 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { CATEGORY_LABEL } from "@/books/describe";
 import { newId } from "@/books/ids";
-import { knownSuppliers, stockRows, suppliers } from "@/books/selectors";
+import { backdateRange, knownSuppliers, stockRows, suppliers } from "@/books/selectors";
 import { useConfirmedAction } from "@/components/app/confirm";
-import { centsToText, Chips, ChoiceTiles, MoneyInput, parseRand, Segmented, Stepper, TextInput } from "@/components/app/inputs";
+import { centsToText, Chips, ChoiceTiles, DateInput, MoneyInput, parseRand, Segmented, Stepper, TextInput } from "@/components/app/inputs";
 import { ChosenItem, ItemPicker } from "@/components/app/item-picker";
 import { Divider, FormActions, InfoStrip, Loading, Panel, Screen, STROKE } from "@/components/app/screen";
 import { money } from "@/lib/format";
@@ -33,6 +33,7 @@ export function PayForm({ initialMode }: { initialMode: Mode }) {
   const [amountText, setAmountText] = useState("");
   const [supplier, setSupplier] = useState("");
   const [paidFrom, setPaidFrom] = useState<PaidFrom | null>(null);
+  const [date, setDate] = useState<string | null>(null);
 
   const data = useMemo(
     () => snapshot && { rows: stockRows(snapshot), owed: suppliers(snapshot), names: knownSuppliers(snapshot), pos: positions(snapshot.book.entries) },
@@ -58,12 +59,21 @@ export function PayForm({ initialMode }: { initialMode: Mode }) {
       : !amount
         ? "Type how much it cost"
         : null;
+  const range = backdateRange(snapshot);
+  const day = date ?? snapshot.today;
   const stillMissing =
-    missing ?? (!paidFrom ? "Choose how you are paying" : paidFrom === "credit" && !supplier.trim() ? "Say which supplier you will pay later" : null);
+    missing ??
+    (!paidFrom
+      ? "Choose how you are paying"
+      : paidFrom === "credit" && !supplier.trim()
+        ? "Say which supplier you will pay later"
+        : day < range.min || day > range.max
+          ? "Choose a date in the last 60 days"
+          : null);
 
   function submit() {
     if (!snapshot || !amount || !paidFrom) return;
-    const base = { kind: "expense" as const, id: newId(), date: snapshot.today, amount, paidFrom, ...(supplier.trim() ? { supplier: supplier.trim() } : {}) };
+    const base = { kind: "expense" as const, id: newId(), date: day, amount, paidFrom, ...(supplier.trim() ? { supplier: supplier.trim() } : {}) };
     const cmd: Command = isStock && item ? { ...base, category: "stock", stockLines: [{ itemId: item.id, qty, cost: amount }] } : { ...base, category: category! };
     check(cmd);
   }
@@ -151,6 +161,8 @@ export function PayForm({ initialMode }: { initialMode: Mode }) {
       />
 
       <ChoiceTiles label="How are you paying?" options={payOptions} value={paidFrom} onChange={setPaidFrom} />
+
+      <DateInput value={day} onChange={setDate} min={range.min} max={range.max} />
 
       {isStock && item && (
         <InfoStrip icon={Package}>

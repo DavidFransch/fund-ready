@@ -108,6 +108,16 @@ export interface OwnerContribution {
   into: MoneyPlace;
 }
 
+/** Money in that isn't from selling, e.g. interest from the bank. */
+export interface OtherIncome {
+  kind: "other_income";
+  id: string;
+  date: IsoDate;
+  amount: Cents;
+  into: MoneyPlace;
+  description?: string;
+}
+
 /** The owner takes money out of the business for themselves (not a business expense). */
 export interface OwnerDrawing {
   kind: "owner_drawing";
@@ -135,6 +145,7 @@ export type Command =
   | Transfer
   | OwnerContribution
   | OwnerDrawing
+  | OtherIncome
   | OpeningBalances;
 
 export interface PostingContext {
@@ -209,6 +220,8 @@ export function post(cmd: Command, ctx: PostingContext): PostingResult {
       return postContribution(cmd);
     case "owner_drawing":
       return postDrawing(cmd);
+    case "other_income":
+      return postOtherIncome(cmd);
     case "opening_balance":
       return postOpening(cmd, ctx);
   }
@@ -448,6 +461,18 @@ function postContribution(cmd: OwnerContribution): PostingResult {
     memo: "Owner put money into the business",
     source: { type: "owner_contribution" },
     lines: [dr(PLACE_ACCOUNT[cmd.into], cmd.amount), cr(ACC.capital, cmd.amount)],
+  });
+  return { entry, movements: [] };
+}
+
+function postOtherIncome(cmd: OtherIncome): PostingResult {
+  positive(cmd.amount, "Amount");
+  const entry = makeEntry({
+    id: cmd.id,
+    date: cmd.date,
+    memo: cmd.description?.trim() || "Other money in",
+    source: { type: "other_income" },
+    lines: [dr(PLACE_ACCOUNT[cmd.into], cmd.amount), cr(ACC.otherIncome, cmd.amount)],
   });
   return { entry, movements: [] };
 }

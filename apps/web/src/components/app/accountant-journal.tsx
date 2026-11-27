@@ -31,6 +31,7 @@ const TYPE_COLOR: Record<EntryType, string> = {
   Purchase: "text-[#3E4642]",
   Expense: "text-[#3E4642]",
   Payment: "text-[#3E4642]",
+  Income: "text-positive",
   Owner: "text-[#3E4642]",
   Opening: "text-[#3E4642]",
 };

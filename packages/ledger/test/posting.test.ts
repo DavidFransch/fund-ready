@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ACC, balanceSheet, LedgerError, netBalances, positions, rand, totalStockValue, type Command } from "../src";
+import { ACC, balanceSheet, incomeStatement, LedgerError, netBalances, positions, rand, totalStockValue, type Command } from "../src";
 import { nomsasBook } from "./fixtures";
 
 function stockMatchesLedger(book: ReturnType<typeof nomsasBook>) {
@@ -59,6 +59,17 @@ describe("posting commands", () => {
     const pos = positions(book.entries);
     expect(pos.owedToYou).toBe(0);
     expect(pos.bank).toBe(rand(6800));
+  });
+
+  it("records interest from the bank as other income, not as sales", () => {
+    const book = nomsasBook();
+    const bankBefore = positions(book.entries).bank;
+    book.execute({ kind: "other_income", id: "int1", date: "2026-09-30", amount: 312, into: "bank", description: "Interest" });
+    expect(positions(book.entries).bank).toBe(bankBefore + 312);
+    const is = incomeStatement(book.entries, { from: "2026-09-30", to: "2026-09-30" });
+    expect(is.revenue.find((l) => l.code === ACC.otherIncome)?.amount).toBe(312);
+    expect(is.revenue.find((l) => l.code === ACC.sales)).toBeUndefined();
+    expect(() => book.execute({ kind: "other_income", id: "int2", date: "2026-09-30", amount: 0, into: "bank" })).toThrow(LedgerError);
   });
 
   it("buys stock from the cash box and updates quantities", () => {

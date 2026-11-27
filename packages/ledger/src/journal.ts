@@ -20,6 +20,7 @@ export type SourceType =
   | "transfer"
   | "owner_contribution"
   | "owner_drawing"
+  | "other_income"
   | "reversal"
   | "manual";
 

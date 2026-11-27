@@ -78,12 +78,14 @@ export function rowText(cmd: Command | undefined, book: Book, entry?: JournalEnt
       return { title: "Owner's pay", detail: `Drawing · ${PAID_FROM_LABEL[cmd.from]}` };
     case "owner_contribution":
       return { title: "Money put in", detail: `Owner · ${PAID_FROM_LABEL[cmd.into]}` };
+    case "other_income":
+      return { title: cmd.description || "Other money in", detail: `Other income · ${PAID_FROM_LABEL[cmd.into]}` };
     case "opening_balance":
       return { title: "Opening balances", detail: "Start of the books" };
   }
 }
 
-export type EntryType = "Sale" | "Purchase" | "Expense" | "Payment" | "Stock" | "Petty cash" | "Owner" | "Opening";
+export type EntryType = "Sale" | "Purchase" | "Expense" | "Payment" | "Income" | "Stock" | "Petty cash" | "Owner" | "Opening";
 
 export function entryType(cmd: Command | undefined): EntryType {
   switch (cmd?.kind) {
@@ -94,6 +96,8 @@ export function entryType(cmd: Command | undefined): EntryType {
     case "payment_made":
     case "payment_received":
       return "Payment";
+    case "other_income":
+      return "Income";
     case "stock_count":
       return "Stock";
     case "transfer":
@@ -108,6 +112,7 @@ export function entryType(cmd: Command | undefined): EntryType {
 
 /** Which screen an action was recorded from, for the accountant. */
 export function recordedFrom(cmd: Command | undefined): string {
+  if (cmd?.id.startsWith("bank-")) return "Bank statement";
   switch (cmd?.kind) {
     case "sale":
       return cmd.invoiceNumber ? "Invoice" : "New sale";
@@ -255,6 +260,10 @@ export function saveLabel(cmd: Command): string {
       return "Save count";
     case "transfer":
       return cmd.to === "cash" ? "Save top-up" : "Save deposit";
+    case "payment_received":
+      return "Save payment";
+    case "other_income":
+      return "Save income";
     default:
       return "Save";
   }

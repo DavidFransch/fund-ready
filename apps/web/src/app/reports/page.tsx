@@ -6,7 +6,9 @@ import { periodRange, type PeriodKind } from "@/books/dates";
 import { activity, periodSummary, salesBars } from "@/books/selectors";
 import { useBooks } from "@/books/store";
 import { ActivityList } from "@/components/app/activity";
+import { Segmented } from "@/components/app/inputs";
 import { PeriodPicker } from "@/components/app/period-picker";
+import { PlainBalanceSheet } from "@/components/app/plain-balance-sheet";
 import { Amount, Divider, Loading, Panel, Screen } from "@/components/app/screen";
 import { money } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -15,6 +17,7 @@ export default function ReportsPage() {
   const { snapshot } = useBooks();
   const [kind, setKind] = useState<PeriodKind>("week");
   const [offset, setOffset] = useState(0);
+  const [view, setView] = useState<"profit" | "balance">("profit");
 
   const data = useMemo(() => {
     if (!snapshot) return null;
@@ -43,8 +46,32 @@ export default function ReportsPage() {
     />
   );
 
+  const viewToggle = (
+    <div className="lg:max-w-xs">
+      <Segmented
+        label="Report"
+        options={[
+          { value: "profit" as const, label: "Profit" },
+          { value: "balance" as const, label: "Balance sheet" },
+        ]}
+        value={view}
+        onChange={setView}
+      />
+    </div>
+  );
+
+  if (view === "balance") {
+    return (
+      <Screen title="Reports" nav>
+        {viewToggle}
+        <PlainBalanceSheet entries={snapshot.book.entries} asAt={snapshot.today} />
+      </Screen>
+    );
+  }
+
   return (
     <Screen title="Reports" nav actions={picker}>
+      {viewToggle}
       <div className="lg:hidden">{picker}</div>
 
       <div className="hidden grid-cols-3 gap-3 lg:grid">

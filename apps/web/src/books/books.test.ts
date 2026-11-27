@@ -4,7 +4,7 @@ import { nextInvoiceNumber } from "./selectors";
 import type { BooksSnapshot } from "./store";
 import { describe, expect, it } from "vitest";
 import { periodRange, weekStart } from "./dates";
-import { generateSampleBusiness, HERO_ITEM, HERO_QTY, SAMPLE_ITEMS } from "./seed";
+import { generateSampleBusiness, HERO_ITEM, HERO_QTY, SAMPLE_CUSTOMER, SAMPLE_ITEMS } from "./seed";
 
 describe("sample business", () => {
   const today = "2026-11-30";
@@ -32,6 +32,13 @@ describe("sample business", () => {
     expect(sample.commands.some((c) => c.kind === "payment_made")).toBe(true);
     expect(sample.commands.some((c) => c.kind === "expense" && c.paidFrom === "credit")).toBe(true);
     expect(sample.commands.some((c) => c.kind === "expense" && c.category === "packaging")).toBe(true);
+  });
+
+  it("has one unpaid invoice, to the sample customer", () => {
+    const invoices = sample.commands.filter((c) => c.kind === "sale" && c.paidWith === "credit");
+    expect(invoices).toHaveLength(1);
+    expect(invoices[0]).toMatchObject({ customer: SAMPLE_CUSTOMER, invoiceNumber: "INV-0001", date: "2026-11-23" });
+    expect(positions(sample.book.entries).owedToYou).toBeGreaterThan(0);
   });
 
   it("lands the demo item on a known quantity at a round average cost", () => {

@@ -20,6 +20,9 @@ import {
 
 export const BUSINESS = { name: "Mama Tee Spaza", owner: "Thandeka", area: "Gugulethu" } as const;
 
+/** The customer with an open invoice in the sample history. */
+export const SAMPLE_CUSTOMER = "Lwazi Crèche";
+
 /** The item the demo script buys, sells and counts. It always ends the history at HERO_QTY. */
 export const HERO_ITEM = "cooldrink";
 export const HERO_QTY = 4;
@@ -187,6 +190,12 @@ export function generateSampleBusiness(today: string): SampleBusiness {
       const extra = qty(HERO_ITEM) - HERO_QTY;
       if (d === end && extra > 0) lines.push(saleLine(HERO_ITEM, Math.ceil(extra / (sessions.length - si))));
       if (lines.length) add({ kind: "sale", date: d, paidWith: r.chance(0.85) ? "cash" : "card", lines });
+    }
+
+    // One customer on account a week ago, still unpaid: something for "Customers owe you" and the bank preview to show.
+    if (d === addDays(today, -7)) {
+      const lines = [saleLine("bread", Math.min(4, qty("bread"))), saleLine("milk", Math.min(3, qty("milk")))].filter((l) => l.qty > 0);
+      if (lines.length) add({ kind: "sale", date: d, paidWith: "credit", customer: SAMPLE_CUSTOMER, invoiceNumber: "INV-0001", lines });
     }
 
     // Bread and milk come off the van every second day, paid from the cash box.

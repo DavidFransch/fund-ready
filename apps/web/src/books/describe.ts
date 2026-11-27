@@ -218,10 +218,14 @@ export function outcomes(cmd: Command, entry: JournalEntry | null, book: Book, b
         out.push({ icon: "stock", label: itemName(book, c.itemId), value: `${now} → ${c.counted} ${unit(book, c.itemId)}`, tone: "ink" });
       }
       const lost = effectOn(entry, ACC.stockAdjustments);
-      const used = effectOn(entry, ACC.costOfSales);
+      const production = effectOn(entry, ACC.costOfSales);
+      const shopUse = effectOn(entry, ACC.consumables);
+      const ownUse = effectOn(entry, ACC.ownerLoan);
       if (lost > 0) out.push({ icon: "loss", label: "Stock lost or stolen", value: R(lost), tone: "negative" });
       if (lost < 0) out.push({ icon: "profit", label: "Extra stock found", value: R(-lost), tone: "positive" });
-      if (used > 0) out.push({ icon: "cost", label: "Used in the shop", value: R(used), tone: "ink" });
+      if (shopUse > 0) out.push({ icon: "cost", label: "Used in the shop (shop supplies)", value: R(shopUse), tone: "ink" });
+      if (ownUse > 0) out.push({ icon: "owe", label: "Taken for own use (your shareholder loan)", value: R(ownUse), tone: "ink" });
+      if (production > 0) out.push({ icon: "cost", label: "Used in production", value: R(production), tone: "ink" });
       if (!entry) out.push({ icon: "neutral", label: "Everything matches", value: "Nothing to record", tone: "muted" });
       break;
     }

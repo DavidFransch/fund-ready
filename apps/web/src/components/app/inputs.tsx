@@ -210,7 +210,12 @@ export function Chips<T extends string>({ label, options, value, onChange, colum
 /** Two-way choice shown as radio pills, e.g. why stock is short. */
 export function RadioPills<T extends string>({ label, options, value, onChange }: { label: string; options: readonly (Choice<T> & { tone: "negative" | "brand" })[]; value: T; onChange: (v: T) => void }) {
   return (
-    <div role="radiogroup" aria-label={label} className="grid grid-cols-2 gap-1.5">
+    <div
+      role="radiogroup"
+      aria-label={label}
+      // Three choices: two then one full-width on a phone, one row from tablet up.
+      className={cn("grid grid-cols-2 gap-1.5", options.length === 3 && "sm:grid-cols-3 [&>*:last-child]:col-span-2 sm:[&>*:last-child]:col-span-1")}
+    >
       {options.map((o) => {
         const selected = o.value === value;
         return (

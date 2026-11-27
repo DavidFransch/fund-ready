@@ -13,10 +13,11 @@ import { Divider, FormActions, Loading, NightCard, Panel, Screen } from "@/compo
 import { money } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-type Reason = "lost" | "used";
+type Reason = "lost" | "shop_use" | "own_use";
 const REASONS = [
   { value: "lost" as const, label: "Lost or stolen", tone: "negative" as const },
-  { value: "used" as const, label: "Used in the shop", tone: "brand" as const },
+  { value: "shop_use" as const, label: "Used in the shop", tone: "brand" as const },
+  { value: "own_use" as const, label: "Taken for own use", tone: "brand" as const },
 ];
 
 export default function CountPage() {
@@ -42,12 +43,18 @@ function CountForm() {
   const p = cmd ? preview(cmd) : null;
   const entry = p?.ok ? p.result.entry : null;
   const lost = effectOn(entry, ACC.stockAdjustments);
-  const used = effectOn(entry, ACC.costOfSales);
+  const shopUse = effectOn(entry, ACC.consumables);
+  const ownUse = effectOn(entry, ACC.ownerLoan);
+  const parts = [
+    { amount: Math.max(0, lost), headline: "stock loss", note: "Recorded as stock lost or stolen", short: "lost" },
+    { amount: shopUse, headline: "used in the shop", note: "Recorded as shop supplies", short: "shop use" },
+    { amount: ownUse, headline: "taken for own use", note: "Charged to your shareholder loan", short: "own use" },
+  ].filter((x) => x.amount > 0);
 
   let headline = "Everything matches";
   let note = "Nothing to record";
-  if (lost > 0) [headline, note] = [`${money(lost)} stock loss`, "Recorded as stock lost or stolen"];
-  else if (used > 0) [headline, note] = [`${money(used)} used`, "Counted as cost of sales"];
+  if (parts.length === 1) [headline, note] = [`${money(parts[0]!.amount)} ${parts[0]!.headline}`, parts[0]!.note];
+  else if (parts.length > 1) [headline, note] = [`${money(parts.reduce((t, x) => t + x.amount, 0))} short`, parts.map((x) => `${money(x.amount)} ${x.short}`).join(" · ")];
   else if (lost < 0) [headline, note] = [`${money(-lost)} extra`, "Recorded as stock found"];
 
   return (

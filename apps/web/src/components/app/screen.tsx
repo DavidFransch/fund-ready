@@ -7,6 +7,7 @@ import { BUSINESS } from "@/books/seed";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ResetDemoButton } from "./demo-menu";
+import { DemoSettingsButton } from "./demo-settings";
 
 /** Lucide icons are drawn at the design's 1.75 stroke everywhere. */
 export const STROKE = 1.75;
@@ -84,6 +85,7 @@ export function AppSidebar() {
           <FileText className="size-[18px]" strokeWidth={STROKE} aria-hidden /> Invoice a customer
         </Link>
         <ResetDemoButton className={cn(item, "font-medium text-[#3E4642] hover:bg-panel")} />
+        <DemoSettingsButton className={cn(item, "font-medium text-[#3E4642] hover:bg-panel")} />
       </div>
     </aside>
   );

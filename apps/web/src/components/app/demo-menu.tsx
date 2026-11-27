@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, FileText, Menu, RotateCcw } from "lucide-react";
+import { BookOpen, FileText, Menu, RotateCcw, Settings2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -8,6 +8,7 @@ import { useBooks } from "@/books/store";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { DemoSettingsPanel } from "./demo-settings";
 import { SHEET_HANDLE, SHEET_OR_DIALOG } from "./sheet-style";
 
 const STROKE = 1.75;
@@ -59,9 +60,13 @@ export function ResetDemoButton({ className }: { className?: string }) {
 export function DemoMenu({ className }: { className?: string }) {
   const [open, setOpen] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [settings, setSettings] = useState(false);
   const close = (o: boolean) => {
     setOpen(o);
-    if (!o) setConfirming(false);
+    if (!o) {
+      setConfirming(false);
+      setSettings(false);
+    }
   };
   const item = "h-12 justify-start gap-3 rounded-2xl bg-panel px-4 text-[15px] font-medium text-ink hover:bg-panel-strong";
   return (
@@ -91,6 +96,13 @@ export function DemoMenu({ className }: { className?: string }) {
           </Button>
         ) : (
           <ResetConfirm onDone={() => close(false)} onCancel={() => setConfirming(false)} />
+        )}
+        {!settings ? (
+          <Button className={item} onClick={() => setSettings(true)}>
+            <Settings2 className="size-5" strokeWidth={STROKE} aria-hidden /> Demo settings
+          </Button>
+        ) : (
+          <DemoSettingsPanel onDone={() => close(false)} />
         )}
       </SheetContent>
     </Sheet>

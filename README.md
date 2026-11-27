@@ -41,7 +41,7 @@ What the demo simplifies:
 
 Demo switches (Demo settings, at the bottom of the sidebar or in the phone menu; or in
 the URL, remembered in that browser). Reset demo doesn't change them.
-- `?tour=on|off`: the guided tour that walks through the demo script (on by default).
+- `?tour=on|off`: a short guided tour of one sale, from Home to the books (off by default).
 - `?bank=on|off`: the bank statement preview (off by default).
 
 What the bank statement preview fakes:

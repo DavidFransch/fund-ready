@@ -6,7 +6,7 @@
 1. Open the demo link on the laptop you will present from, in a full-width browser window. You get the desktop layout: a sidebar on the left, forms in a centred column, and Check and save as a dialog. On a phone the same steps work with the bottom bar.
 2. Click **Reset demo** at the bottom of the sidebar (on a phone: **menu, top right → Reset demo**), then **Yes, reset the demo**. The shop gets about 8 weeks of history up to yesterday, and Home's "Today" list is empty.
 3. Check **Stock** in the sidebar: **Cooldrink 2L shows 4 bottles, running low**. Every number below starts from there.
-4. **Guided tour (optional):** a card walks through these same steps and moves on as you save each one. It starts on first visit; to run it again: **Demo settings → Restart tour** (it offers to reset first). Switch it off in Demo settings, or open the link with `?tour=off`, if you'd rather present from this script.
+4. **Guided tour (optional, off by default):** a short tour of one sale. It spotlights each control to tap, from Home to Sell to Check and save, then Books. Start it from **Demo settings → Restart tour**, which offers to reset first, or open the link with `?tour=on`. It is not a replacement for this script.
 
 > Cooldrink 2L costs **R22.00** and sells for **R30.00**. The petty cash and bank totals depend on the day, so read them off the screen. On Monday 30 Nov nothing is owed to the supplier beforehand, so "You owe the supplier" reads exactly R176.00.
 

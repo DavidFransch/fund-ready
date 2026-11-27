@@ -126,6 +126,8 @@ export function recordedFrom(cmd: Command | undefined): string {
       return "Count stock";
     case "transfer":
       return "Petty cash";
+    case "owner_drawing":
+      return cmd.from === "cash" ? "Petty cash" : "Bank";
     default:
       return "Set-up";
   }
@@ -223,6 +225,15 @@ export function outcomes(cmd: Command, entry: JournalEntry | null, book: Book, b
       if (!entry) out.push({ icon: "neutral", label: "Everything matches", value: "Nothing to record", tone: "muted" });
       break;
     }
+    case "owner_drawing": {
+      out.push(place(cmd.from));
+      const loan = before.owedToOwner ?? 0;
+      const after = loan - cmd.amount;
+      if (after >= 0) out.push({ icon: "owe", label: "The business owes you", value: `${R(loan)} → ${R(after)}`, tone: "ink" });
+      else if (loan > 0) out.push({ icon: "loss", label: `That's more than the ${R(loan)} the business owes you. After this you owe the business`, value: R(-after), tone: "negative" });
+      else out.push({ icon: "loss", label: "You owe the business", value: `${R(-loan)} → ${R(-after)}`, tone: "negative" });
+      break;
+    }
     case "transfer":
       out.push(place("cash"), place("bank"));
       out.push({ icon: "neutral", label: "Money in or out of the business", value: "No change", tone: "muted" });
@@ -250,6 +261,8 @@ export function summaryLine(cmd: Command, book: Book): string {
     }
     case "payment_made":
       return `Paying ${cmd.supplier} ${R(cmd.amount)}`;
+    case "owner_drawing":
+      return `Taking ${R(cmd.amount)} for yourself from ${cmd.from === "cash" ? "petty cash" : "the bank"}`;
     case "payment_received":
       return `Payment from ${cmd.customer ?? "a customer"}${cmd.invoiceNumber ? ` for ${cmd.invoiceNumber}` : ""} · ${R(cmd.amount)}`;
     case "stock_count":
@@ -275,6 +288,8 @@ export function saveLabel(cmd: Command): string {
       return cmd.to === "cash" ? "Save top-up" : "Save deposit";
     case "payment_received":
       return "Save payment";
+    case "owner_drawing":
+      return "Save";
     case "other_income":
       return "Save income";
     default:

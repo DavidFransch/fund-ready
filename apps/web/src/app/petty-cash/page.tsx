@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDownToLine, Landmark } from "lucide-react";
+import { ArrowDownToLine, HandCoins, Landmark } from "lucide-react";
 import { Fragment, useMemo, useState } from "react";
 import { newId } from "@/books/ids";
 import { byDay, pettyCash } from "@/books/selectors";
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { money, relativeDay } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-type Move = "topup" | "deposit";
+type Move = "topup" | "deposit" | "drawing";
 
 const TABLE_COLS = "grid grid-cols-[56px_minmax(0,1fr)_104px_104px_112px] gap-3";
 
@@ -30,7 +30,8 @@ export default function PettyCashPage() {
 
   function submit() {
     if (!snapshot || !amount || !move) return;
-    check({ kind: "transfer", id: newId(), date: snapshot.today, amount, from: move === "topup" ? "bank" : "cash", to: move === "topup" ? "cash" : "bank" });
+    if (move === "drawing") check({ kind: "owner_drawing", id: newId(), date: snapshot.today, amount, from: "cash" });
+    else check({ kind: "transfer", id: newId(), date: snapshot.today, amount, from: move === "topup" ? "bank" : "cash", to: move === "topup" ? "cash" : "bank" });
     setMove(null);
     setAmountText("");
   }
@@ -53,13 +54,18 @@ export default function PettyCashPage() {
           <Button size="touch" variant="outline" aria-pressed={move === "deposit"} className={cn(move === "deposit" && "border-ink")} onClick={() => setMove(move === "deposit" ? null : "deposit")}>
             <Landmark className="size-[18px]" strokeWidth={STROKE} aria-hidden /> Bank it
           </Button>
+          <Button size="touch" variant="outline" aria-pressed={move === "drawing"} className={cn("col-span-2", move === "drawing" && "border-ink")} onClick={() => setMove(move === "drawing" ? null : "drawing")}>
+            <HandCoins className="size-[18px]" strokeWidth={STROKE} aria-hidden /> Take for yourself
+          </Button>
         </div>
         {move && (
           <div className="flex flex-col gap-3 border-t border-divider pt-4">
-            <p className="text-[15px] font-medium">{move === "topup" ? "Take cash from the bank to put in petty cash" : "Take cash from petty cash to the bank"}</p>
+            <p className="text-[15px] font-medium">
+              {move === "topup" ? "Take cash from the bank to put in petty cash" : move === "deposit" ? "Take cash from petty cash to the bank" : "Take cash from petty cash for yourself (not a business cost)"}
+            </p>
             <MoneyInput label="How much" value={amountText} onChange={setAmountText} />
             <Button size="primary" disabled={!amount} onClick={submit}>
-              {move === "topup" ? "Review top-up" : "Review deposit"}
+              {move === "topup" ? "Review top-up" : move === "deposit" ? "Review deposit" : "Review"}
             </Button>
           </div>
         )}

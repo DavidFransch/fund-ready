@@ -11,7 +11,7 @@ import { useSyncExternalStore } from "react";
 export type Feature = "tour" | "bankImport";
 type Flags = Record<Feature, boolean>;
 
-const DEFAULTS: Flags = { tour: true, bankImport: false };
+const DEFAULTS: Flags = { tour: false, bankImport: false };
 const PARAMS: Record<string, Feature> = { tour: "tour", bank: "bankImport" };
 const KEY = "fetola-flags";
 

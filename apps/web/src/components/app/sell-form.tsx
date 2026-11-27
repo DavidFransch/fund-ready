@@ -89,6 +89,7 @@ export function SellForm() {
         <FormActions
           hint={missing}
           cancelHref="/"
+          tourId="form-save"
           label={invoiceNumber ? "Review invoice" : "Review sale"}
           disabled={!!missing}
           onClick={() =>
@@ -111,7 +112,7 @@ export function SellForm() {
         />
       }
     >
-      <div data-tour="sale" className="flex flex-col gap-4">
+      <div data-tour="sale-items" className="flex flex-col gap-4">
         {priced.length > 0 && <BasketTotal basket={basket} />}
         <BasketLines basket={basket} label="In this sale" emptyLabel="What did you sell?" />
       </div>

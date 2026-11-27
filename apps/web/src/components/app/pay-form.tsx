@@ -120,7 +120,7 @@ export function PayForm({ initialMode }: { initialMode: Mode }) {
 
       {isStock ? (
         item && !picking ? (
-          <Panel data-tour="buy-stock" className="flex flex-col">
+          <Panel className="flex flex-col">
             <ChosenItem row={item} detail={`${item.qty} in stock · last cost ${money(item.unitCost)}`} onChange={() => setPicking(true)} />
             <Divider className="mx-0" />
             <div className="grid grid-cols-2 gap-3 p-3.5">
@@ -148,7 +148,7 @@ export function PayForm({ initialMode }: { initialMode: Mode }) {
           />
         )
       ) : (
-        <Panel data-tour="expense" className="flex flex-col gap-4 p-3.5">
+        <Panel className="flex flex-col gap-4 p-3.5">
           <Chips label="What was it for?" options={OTHER_CATEGORIES} value={category} onChange={setCategory} />
           <MoneyInput label="How much" value={amountText} onChange={setAmountText} />
         </Panel>

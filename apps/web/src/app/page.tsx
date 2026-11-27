@@ -41,7 +41,7 @@ export default function HomePage() {
     <Screen
       nav
       header={
-        <header data-tour="home-welcome" className="flex items-center gap-3 px-5 pt-[18px] lg:px-0 lg:pt-0">
+        <header className="flex items-center gap-3 px-5 pt-[18px] lg:px-0 lg:pt-0">
           <span className="lg:hidden">
             <Logo />
           </span>
@@ -107,7 +107,7 @@ export default function HomePage() {
 
       <nav aria-label="Quick actions" className="mt-1 grid grid-cols-4 gap-2 lg:hidden">
         {ACTIONS.map(({ href, label, icon: Icon, primary }) => (
-          <Link key={href} href={href} className="group flex flex-col items-center gap-2 text-[13px] font-medium">
+          <Link key={href} href={href} data-tour={href === "/sell" ? "home-sell" : undefined} className="group flex flex-col items-center gap-2 text-[13px] font-medium">
             <span
               className={cn(
                 "flex size-14 items-center justify-center rounded-[18px] transition-colors",
@@ -121,7 +121,7 @@ export default function HomePage() {
         ))}
       </nav>
 
-      <div data-tour="home-owed" className="mt-1 grid grid-cols-2 gap-2">
+      <div className="mt-1 grid grid-cols-2 gap-2">
         <Link href="/customers" className="flex flex-col gap-1 rounded-2xl bg-panel p-3.5 hover:bg-panel-strong">
           <span className="text-xs text-ink-muted">Customers owe you</span>
           <span className="text-[17px] font-semibold">{money(h.owedToYou)}</span>
@@ -153,6 +153,7 @@ export default function HomePage() {
             <Link
               key={href}
               href={href}
+              data-tour={href === "/sell" ? "home-sell" : undefined}
               className={cn(
                 "flex min-h-[132px] flex-col justify-between gap-4 rounded-[20px] p-4 transition-colors",
                 primary ? "bg-brand text-white hover:bg-brand-strong" : "bg-panel text-ink hover:bg-panel-strong",

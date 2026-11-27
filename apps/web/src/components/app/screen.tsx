@@ -39,6 +39,7 @@ export function BottomNav() {
           <Link
             key={item.href}
             href={item.href}
+            data-tour={item.href === "/accountant" ? "nav-books" : undefined}
             aria-current={active ? "page" : undefined}
             className={cn("flex flex-col items-center justify-center gap-1 text-xs", active ? "font-semibold text-ink" : "font-medium text-ink-muted")}
           >
@@ -74,6 +75,7 @@ export function AppSidebar() {
             <Link
               key={n.href}
               href={n.href}
+              data-tour={n.href === "/accountant" ? "nav-books" : undefined}
               aria-current={active ? "page" : undefined}
               className={cn(item, active ? "bg-panel-strong font-semibold text-ink" : "font-medium text-[#3E4642] hover:bg-panel")}
             >
@@ -162,14 +164,29 @@ export function Screen({
  * The form's main action. Phone: full-width sticky button (with the hint above).
  * Desktop: a right-aligned row with Cancel and the primary button.
  */
-export function FormActions({ hint, cancelHref, label, disabled, onClick }: { hint?: string | null; cancelHref: string; label: string; disabled?: boolean; onClick: () => void }) {
+export function FormActions({
+  hint,
+  cancelHref,
+  label,
+  disabled,
+  onClick,
+  tourId,
+}: {
+  hint?: string | null;
+  cancelHref: string;
+  label: string;
+  disabled?: boolean;
+  onClick: () => void;
+  /** `data-tour` name for the main button, so the guided tour can point at it. */
+  tourId?: string;
+}) {
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-end">
       {hint && <p className="text-center text-[13px] text-ink-muted lg:mr-auto lg:text-left">{hint}</p>}
       <Button asChild variant="outline" size="touch" className="hidden lg:inline-flex lg:px-6">
         <Link href={cancelHref}>Cancel</Link>
       </Button>
-      <Button size="primary" disabled={disabled} onClick={onClick} className="lg:h-12 lg:w-auto lg:min-w-44">
+      <Button size="primary" disabled={disabled} onClick={onClick} data-tour={tourId} className="lg:h-12 lg:w-auto lg:min-w-44">
         {label}
       </Button>
     </div>

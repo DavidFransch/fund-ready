@@ -257,7 +257,7 @@ function EntryPanel({ row, today }: { row: JournalRow; today: string }) {
   const credit = row.entry.lines.reduce((s, l) => s + l.credit, 0);
   const when = `${row.entry.date === today ? "today" : row.entry.date}${row.time ? ` ${row.time}` : ""}`;
   return (
-    <aside data-tour="books-entry" aria-label="Journal entry" className="flex w-full flex-col gap-[18px] px-5 pt-14 pb-8 sm:px-6 xl:w-[360px] xl:shrink-0 xl:border-l xl:border-hairline xl:pt-7">
+    <aside aria-label="Journal entry" className="flex w-full flex-col gap-[18px] px-5 pt-14 pb-8 sm:px-6 xl:w-[360px] xl:shrink-0 xl:border-l xl:border-hairline xl:pt-7">
       <div className="flex flex-col gap-1.5">
         <span className="font-mono text-xs font-medium text-ink-muted">{row.ref}</span>
         <span className="text-xl font-semibold tracking-[-0.01em]">{row.title}</span>

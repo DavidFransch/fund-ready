@@ -1,6 +1,7 @@
 "use client";
 
 import { Settings2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useBooks } from "@/books/store";
 import { Button } from "@/components/ui/button";
@@ -30,17 +31,20 @@ function Toggle({ feature, label, detail }: { feature: Feature; label: string; d
 /** The switches and "Restart tour". Used in the sidebar's dialog and inside the phone menu. */
 export function DemoSettingsPanel({ onDone }: { onDone: () => void }) {
   const { reset } = useBooks();
+  const router = useRouter();
   const [restarting, setRestarting] = useState(false);
+  // The tour begins on Home, wherever it was restarted from.
   const start = (fresh: boolean) => {
     if (fresh) reset();
     setFlag("tour", true);
     tour.start();
     setRestarting(false);
     onDone();
+    router.push("/");
   };
   return (
     <div className="flex flex-col gap-2">
-      <Toggle feature="tour" label="Guided tour" detail="Walks through the demo story, step by step" />
+      <Toggle feature="tour" label="Guided tour" detail="A short tour of one sale, from Home to the books" />
       <Toggle feature="bankImport" label="Bank statement (preview)" detail="Match a sample bank statement to the books" />
       {!restarting ? (
         <Button variant="outline" size="touch" className="mt-1" onClick={() => setRestarting(true)}>

@@ -86,7 +86,7 @@ export default function ReportsPage() {
       </section>
 
       <div className="flex flex-col gap-4 lg:grid lg:grid-cols-3 lg:items-start lg:gap-6">
-      <Panel data-tour="reports" aria-label="Sales by period" className="flex flex-col gap-2.5 rounded-[20px] px-3.5 pt-4 pb-3 lg:col-span-2 lg:px-5 lg:pt-5">
+      <Panel aria-label="Sales by period" className="flex flex-col gap-2.5 rounded-[20px] px-3.5 pt-4 pb-3 lg:col-span-2 lg:px-5 lg:pt-5">
         <div className="flex items-baseline justify-between">
           <span className="text-[13px] font-medium text-ink-muted">Sales</span>
           <span className="text-[15px] font-semibold">{money(sum.sales)}</span>

@@ -71,7 +71,7 @@ export default function PettyCashPage() {
         )}
       </Panel>
 
-      <section data-tour="petty-cash" aria-label="Movements" className="mt-1.5 flex flex-col gap-2 lg:hidden">
+      <section aria-label="Movements" className="mt-1.5 flex flex-col gap-2 lg:hidden">
         {byDay(rows.slice(0, limit)).map((group) => (
           <Fragment key={group.date}>
             <DayHeading>{relativeDay(group.date, snapshot.today)}</DayHeading>
@@ -107,7 +107,7 @@ export default function PettyCashPage() {
         )}
       </section>
 
-      <section data-tour="petty-cash" aria-label="Movements" className="hidden min-w-0 flex-col gap-3 lg:flex">
+      <section aria-label="Movements" className="hidden min-w-0 flex-col gap-3 lg:flex">
         <div className="overflow-x-auto">
         <div role="table" aria-label="Petty cash movements" className="flex min-w-[540px] flex-col text-sm">
           <div role="row" className={cn(TABLE_COLS, "px-3 pb-2.5 text-xs font-medium text-ink-muted")}>

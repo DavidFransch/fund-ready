@@ -208,7 +208,7 @@ function ConfirmSheet({
         )}
 
         <div className="flex flex-col gap-2">
-          <Button size="primary" onClick={onConfirm}>
+          <Button size="primary" onClick={onConfirm} data-tour="sheet-save">
             {pending?.save ?? "Save"}
           </Button>
           {pending?.whatsApp && (

@@ -34,10 +34,23 @@ What the demo simplifies:
 - Every action is dated today; there is no back-dating and no undo or reversal screen.
 - No month is closed, so period locking is not shown.
 - Suppliers are matched by name for "money owed"; there are no supplier records.
-- A sale is one item per action (the ledger supports more).
+- Sending invoices and receipts by email only shows a "sent" message; nothing is emailed.
 - Data lives in one browser. Use Reset demo to start over, or when moving device.
 - The home card shows the last 7 days instead of the calendar week, so it is never
   empty on a Monday.
+
+Demo switches (Demo settings, at the bottom of the sidebar or in the phone menu; or in
+the URL, remembered in that browser). Reset demo doesn't change them.
+- `?tour=on|off`: the guided tour that walks through the demo script (on by default).
+- `?bank=on|off`: the bank statement preview (off by default).
+
+What the bank statement preview fakes:
+- No file is read or parsed, and there is no AI call. Dropping a file says so and uses
+  the sample statement.
+- The "sample statement" is built from the books' own bank movements for the 14 days
+  before the demo day, plus three lines the books don't have: a R65.00 bank fee, R3.12
+  interest and an EFT from Lwazi Crèche for the open invoice INV-0001. Confirming them
+  records real entries, so the bank reconciles.
 
 ## Local development
 

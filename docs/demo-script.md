@@ -6,6 +6,7 @@
 1. Open the demo link on the laptop you will present from, in a full-width browser window. You get the desktop layout: a sidebar on the left, forms in a centred column, and Check and save as a dialog. On a phone the same steps work with the bottom bar.
 2. Click **Reset demo** at the bottom of the sidebar (on a phone: **menu, top right → Reset demo**), then **Yes, reset the demo**. The shop gets about 8 weeks of history up to yesterday, and Home's "Today" list is empty.
 3. Check **Stock** in the sidebar: **Cooldrink 2L shows 4 bottles, running low**. Every number below starts from there.
+4. **Guided tour (optional):** a card walks through these same steps and moves on as you save each one. It starts on first visit; to run it again: **Demo settings → Restart tour** (it offers to reset first). Switch it off in Demo settings, or open the link with `?tour=off`, if you'd rather present from this script.
 
 > Cooldrink 2L costs **R22.00** and sells for **R30.00**. The petty cash and bank totals depend on the day, so read them off the screen. On Monday 30 Nov nothing is owed to the supplier beforehand, so "You owe the supplier" reads exactly R176.00.
 
@@ -49,6 +50,12 @@
 - The KPI tiles show today's entries, total debits = total credits, and the trial balance **Balanced**.
 - In the tabs along the top: **Trial balance** (also shows that the stock records tie to 1200 Inventory), **Profit and loss**, **Balance sheet**, and **Exports** (CSV for Xero, Sage or Excel).
 - *Say:* "This is real double-entry bookkeeping, not a cash book. An accountant can sign off on these books, which is why this costs more than a spreadsheet and less than a bookkeeper."
+
+### What's next (optional): bank statement preview
+Turn on **Demo settings → Bank statement (preview)** beforehand, or open the link with `?bank=on`. **Bank statement** appears in the sidebar with a Preview label.
+- **Use sample statement (Capitec Business, last 14 days).** It reads for a moment, then shows most lines already **Matched** to her books (tap one to open its journal entry).
+- Three lines need her: a **R65.00 bank fee**, **R3.12 interest** and an **EFT from Lwazi Crèche for INV-0001**. Tap **Confirm** on each. The page then reads **Bank reconciled: statement R… = books R…**, and Home's "Customers owe you" drops to R0.00.
+- *Say:* "Coming in the pilot: she uploads a statement from any bank and the app matches it to her records. Today this is a preview with a sample statement."
 
 ---
 

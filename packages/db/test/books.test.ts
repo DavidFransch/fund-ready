@@ -3,16 +3,33 @@ import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { sql } from "drizzle-orm";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
+import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { businessAccess, closeMonth, createDb, executeCommand, loadEntries, loadStock, reverseRecordedEntry, schema } from "../src";
 
 const url = process.env.TEST_DATABASE_URL ?? "postgres://postgres@localhost:5433/books_test";
+
+/** These tests need a real Postgres; without one they skip instead of failing `pnpm test`. */
+async function canConnect(connectionString: string): Promise<boolean> {
+  const client = new pg.Client({ connectionString, connectionTimeoutMillis: 1500 });
+  try {
+    await client.connect();
+    await client.end();
+    return true;
+  } catch {
+    return false;
+  }
+}
+const reachable = await canConnect(url);
+if (!reachable) console.info("Skipping the Postgres tests: no database reachable (set TEST_DATABASE_URL to run them).");
+
 const { db, pool } = createDb(url);
 
 let businessId: string;
 const itemIds: Record<string, string> = {};
 
 beforeAll(async () => {
+  if (!reachable) return;
   await db.execute(sql`drop schema if exists public cascade; drop schema if exists drizzle cascade; create schema public;`);
   await migrate(db, { migrationsFolder: fileURLToPath(new URL("../migrations", import.meta.url)) });
   const [b] = await db.insert(schema.businesses).values({ name: "Nomsa's Kitchen" }).returning();
@@ -44,7 +61,7 @@ async function pgError(p: Promise<unknown>): Promise<string> {
 
 const run = (command: Command) => executeCommand(db, { businessId, userId: null, command });
 
-describe("books in Postgres", () => {
+describe.skipIf(!reachable)("books in Postgres", () => {
   it("matches the in-memory reference books for the same commands", async () => {
     const cmds: Command[] = [
       { kind: "opening_balance", id: randomUUID(), date: "2026-09-01", cashBox: rand(1000), bank: rand(5000), stock: [{ itemId: itemIds.tray!, qty: 9, cost: rand(1800) }, { itemId: itemIds.flour!, qty: 2, cost: rand(520) }] },

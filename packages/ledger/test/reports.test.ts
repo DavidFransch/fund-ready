@@ -48,7 +48,8 @@ describe("reports", () => {
     expect(bs.balanced).toBe(true);
     expect(bs.profitToDate).toBe(-rand(460));
     // Drawings reduce equity but are not an expense.
-    expect(bs.equity.find((l) => l.code === ACC.drawings)?.amount).toBe(-rand(300));
+    // Drawings go against the shareholder loan: R60 owed to the owner less R300 taken out.
+    expect(bs.liabilities.find((l) => l.code === ACC.ownerLoan)?.amount).toBe(rand(60) - rand(300));
     expect(trialBalance(book.entries).balanced).toBe(true);
   });
 

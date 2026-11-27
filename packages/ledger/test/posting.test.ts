@@ -145,6 +145,40 @@ describe("posting commands", () => {
     stockMatchesLedger(book);
   });
 
+  it("books each kind of shortfall to its own account in one balanced entry", () => {
+    const book = nomsasBook();
+    const ids = [...book.levels.keys()].filter((id) => (book.levels.get(id)?.qty ?? 0) >= 3).slice(0, 3);
+    expect(ids).toHaveLength(3);
+    const [a, b, c] = ids as [string, string, string];
+    const r = book.execute({
+      kind: "stock_count",
+      id: "cnt-mix",
+      date: "2026-09-20",
+      counts: [
+        { itemId: a, counted: book.level(a).qty - 1, reason: "lost" },
+        { itemId: b, counted: book.level(b).qty - 1, reason: "shop_use" },
+        { itemId: c, counted: book.level(c).qty - 1, reason: "own_use" },
+      ],
+    });
+    const accounts = r.entry!.lines.filter((l) => l.debit > 0).map((l) => l.account).sort();
+    expect(accounts).toEqual([ACC.ownerLoan, ACC.stockAdjustments, ACC.consumables].sort());
+    expect(r.entry!.lines.find((l) => l.account === ACC.stock)?.credit).toBe(r.entry!.lines.reduce((t, l) => t + l.debit, 0));
+    stockMatchesLedger(book);
+  });
+
+  it("still reads the older \"used\" reason as production, so cost of sales", () => {
+    const book = nomsasBook();
+    const id = [...book.levels.keys()].find((k) => (book.levels.get(k)?.qty ?? 0) > 0)!;
+    const r = book.execute({ kind: "stock_count", id: "cnt-old", date: "2026-09-20", counts: [{ itemId: id, counted: book.level(id).qty - 1, reason: "used" }] });
+    expect(r.entry!.lines.some((l) => l.account === ACC.costOfSales && l.debit > 0)).toBe(true);
+  });
+
+  it("takes owner drawings against the shareholder loan", () => {
+    const book = nomsasBook();
+    const r = book.execute({ kind: "owner_drawing", id: "dr1", date: "2026-09-20", amount: rand(200), from: "cash" });
+    expect(r.entry!.lines).toEqual(expect.arrayContaining([expect.objectContaining({ account: ACC.ownerLoan, debit: rand(200) }), expect.objectContaining({ account: ACC.cashBox, credit: rand(200) })]));
+  });
+
   it("posts nothing when the count matches", () => {
     const book = nomsasBook();
     const r = book.execute({ kind: "stock_count", id: "c", date: "2026-09-30", counts: [{ itemId: "flour", counted: 2 }] });

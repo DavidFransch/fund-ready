@@ -37,6 +37,7 @@ export const ACC = {
   phoneData: "6400",
   bankCharges: "6500",
   packaging: "6600",
+  consumables: "6700",
   otherExpenses: "6900",
 } as const;
 
@@ -64,6 +65,7 @@ export const CHART: readonly Account[] = [
   { code: ACC.phoneData, name: "Telephone and data", plainName: "Airtime and data", type: "expense", group: "operating_expense" },
   { code: ACC.bankCharges, name: "Bank charges", plainName: "Bank fees", type: "expense", group: "operating_expense" },
   { code: ACC.packaging, name: "Packaging materials", plainName: "Packaging", type: "expense", group: "operating_expense" },
+  { code: ACC.consumables, name: "Consumables and office supplies", plainName: "Shop supplies", type: "expense", group: "operating_expense" },
   { code: ACC.otherExpenses, name: "Sundry expenses", plainName: "Other", type: "expense", group: "operating_expense" },
 ];
 

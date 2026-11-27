@@ -83,12 +83,35 @@ export interface PaySupplier {
   supplier: string;
 }
 
+export type StockShortReason = "lost" | "shop_use" | "own_use" | "production" | "used";
+
+/** Where each kind of shortfall is expensed (or, for own use, charged to the owner). */
+const SHORT_ACCOUNT: Record<StockShortReason, AccountCode> = {
+  lost: ACC.stockAdjustments,
+  shop_use: ACC.consumables,
+  own_use: ACC.ownerLoan,
+  production: ACC.costOfSales,
+  used: ACC.costOfSales,
+};
+
+const SHORT_MEMO: Record<StockShortReason, string> = {
+  lost: "Stock lost",
+  shop_use: "Used in the shop",
+  own_use: "Taken for own use",
+  production: "Stock used",
+  used: "Stock used",
+};
+
 export interface RecordStockCount {
   kind: "stock_count";
   id: string;
   date: IsoDate;
-  /** `reason` applies when there is less than recorded: "used" (e.g. ingredients cooked) or "lost" (default). */
-  counts: { itemId: string; counted: number; reason?: "used" | "lost" }[];
+  /**
+   * `reason` applies when there is less than recorded: "lost" (default), "shop_use" (used up
+   * in the business), "own_use" (taken by the owner) or "production" (e.g. ingredients cooked,
+   * so cost of sales). "used" is the older name for "production".
+   */
+  counts: { itemId: string; counted: number; reason?: StockShortReason }[];
 }
 
 export interface Transfer {
@@ -388,8 +411,8 @@ function postExpense(cmd: RecordExpense, ctx: PostingContext): PostingResult {
 
 function postStockCount(cmd: RecordStockCount, ctx: PostingContext): PostingResult {
   const movements: StockMovement[] = [];
-  let loss = 0;
-  let used = 0;
+  /** Cost taken out of stock per reason; a find (negative cost) goes against "lost". */
+  const out = new Map<StockShortReason, number>();
   const seen = new Set<string>();
   cmd.counts.forEach((c, i) => {
     if (seen.has(c.itemId)) throw new LedgerError("Each item can only be counted once per count");
@@ -418,22 +441,23 @@ function postStockCount(cmd: RecordStockCount, ctx: PostingContext): PostingResu
       cost,
       entryId: cmd.id,
     });
-    // Stock used up (e.g. ingredients cooked) is cost of sales; anything else is a loss or a find.
-    if (diff < 0 && c.reason === "used") used -= cost;
-    else loss -= cost;
+    // Extra stock found is credited against stock losses whatever reason was picked.
+    const reason: StockShortReason = diff < 0 ? (c.reason ?? "lost") : "lost";
+    out.set(reason, (out.get(reason) ?? 0) - cost);
   });
-  if (loss === 0 && used === 0) return { entry: null, movements };
-  const lines: JournalLine[] = [];
-  if (used > 0) lines.push(dr(ACC.costOfSales, used, "Stock used"));
-  if (loss > 0) lines.push(dr(ACC.stockAdjustments, loss, "Stock lost"));
-  if (loss < 0) lines.push(cr(ACC.stockAdjustments, -loss, "Extra stock found"));
-  const net = used + loss;
+  const totals = [...out].filter(([, amount]) => amount !== 0);
+  if (!totals.length) return { entry: null, movements };
+  const lines: JournalLine[] = totals.map(([reason, amount]) =>
+    amount > 0 ? dr(SHORT_ACCOUNT[reason], amount, SHORT_MEMO[reason]) : cr(SHORT_ACCOUNT[reason], -amount, "Extra stock found"),
+  );
+  const net = totals.reduce((t, [, amount]) => t + amount, 0);
   if (net > 0) lines.push(cr(ACC.stock, net));
   if (net < 0) lines.push(dr(ACC.stock, -net));
+  const main = totals.reduce((a, b) => (b[1] > a[1] ? b : a));
   const entry = makeEntry({
     id: cmd.id,
     date: cmd.date,
-    memo: used > 0 && loss <= 0 ? "Stock count: stock used" : loss > 0 ? "Stock count: stock lost" : "Stock count: extra stock found",
+    memo: main[1] > 0 ? `Stock count: ${SHORT_MEMO[main[0]].toLowerCase()}` : "Stock count: extra stock found",
     source: { type: "stock_count" },
     lines,
   });
@@ -484,7 +508,8 @@ function postDrawing(cmd: OwnerDrawing): PostingResult {
     date: cmd.date,
     memo: "Owner took money out",
     source: { type: "owner_drawing" },
-    lines: [dr(ACC.drawings, cmd.amount), cr(PLACE_ACCOUNT[cmd.from], cmd.amount)],
+    // Against the shareholder loan: the business repays what it owes the owner, or the owner ends up owing it.
+    lines: [dr(ACC.ownerLoan, cmd.amount), cr(PLACE_ACCOUNT[cmd.from], cmd.amount)],
   });
   return { entry, movements: [] };
 }
